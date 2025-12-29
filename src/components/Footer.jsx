@@ -4,7 +4,7 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 md:grid-cols-3 gap-8 text-sm">
 
         <div>
-          <h3 className="font-semibold mb-2">B2C Website</h3>
+          <h3 className="font-semibold mb-2">Ketalog</h3>
           <p className="text-gray-600 dark:text-gray-400">
             Connecting buyers with trusted sellers across categories.
           </p>
@@ -32,7 +32,7 @@ export default function Footer() {
       </div>
 
       <div className="text-center text-xs text-gray-500 py-4">
-        © {new Date().getFullYear()} B2C Website. All rights reserved.
+        © {new Date().getFullYear()} Ketalog. All rights reserved.
       </div>
     </footer>
   );

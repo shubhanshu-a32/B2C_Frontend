@@ -1,17 +1,55 @@
 import useCartStore from "../../store/cartStore";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Button from "../../components/ui/Button";
 import { Link } from "react-router-dom";
+import api from "../../services/api";
+import toast from "react-hot-toast";
 
 export default function CartPage() {
   const { items, removeFromCart, updateQty, placeOrder, loading } = useCartStore();
   const [paymentType, setPaymentType] = useState("COD");
 
+  // Address State
+  const [savedAddresses, setSavedAddresses] = useState([]);
+  const [addressMode, setAddressMode] = useState("saved"); // 'saved' | 'new'
+  const [selectedSavedAddr, setSelectedSavedAddr] = useState("");
+  const [newAddress, setNewAddress] = useState("");
+
   const total = items.reduce((s, i) => s + i.price * i.qty, 0);
 
+  useEffect(() => {
+    // Fetch saved addresses from profile
+    api.get("/buyer/profile")
+      .then(({ data }) => {
+        const addrs = data.addresses || [];
+        setSavedAddresses(addrs);
+        if (addrs.length > 0) {
+          setSelectedSavedAddr(addrs[0]);
+        } else {
+          setAddressMode("new");
+        }
+      })
+      .catch((err) => console.error("Failed to load addresses", err));
+  }, []);
+
   const checkout = async () => {
+    let finalAddress = "";
+    if (addressMode === "saved") {
+      if (!selectedSavedAddr) {
+        toast.error("Please select a saved address");
+        return;
+      }
+      finalAddress = selectedSavedAddr;
+    } else {
+      if (!newAddress.trim()) {
+        toast.error("Please enter a shipping address");
+        return;
+      }
+      finalAddress = newAddress;
+    }
+
     try {
-      await placeOrder(paymentType);
+      await placeOrder(paymentType, { fullAddress: finalAddress });
     } catch (err) {
       // errors handled in store
     }
@@ -35,11 +73,12 @@ export default function CartPage() {
       <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Shopping Cart ({items.length})</h2>
 
       <div className="grid lg:grid-cols-3 gap-8">
+
         {/* Cart Items */}
         <div className="lg:col-span-2 space-y-4">
           {items.map((it) => (
-            <div key={it.productId} className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border dark:border-gray-700 flex gap-4 transition hover:shadow-md">
-              <div className="w-28 h-28 bg-gray-100 dark:bg-gray-700 rounded-lg shrink-0 overflow-hidden">
+            <div key={it.productId} className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border dark:border-gray-700 flex flex-col sm:flex-row gap-4 transition hover:shadow-md">
+              <div className="w-full sm:w-28 h-48 sm:h-28 bg-gray-100 dark:bg-gray-700 rounded-lg shrink-0 overflow-hidden">
                 {it.image ? (
                   <img src={it.image} alt={it.title} className="w-full h-full object-cover" />
                 ) : (
@@ -49,7 +88,7 @@ export default function CartPage() {
 
               <div className="flex-1 flex flex-col justify-between">
                 <div>
-                  <h3 className="font-semibold text-lg text-gray-800 dark:text-gray-100 line-clamp-1">{it.title}</h3>
+                  <h3 className="font-semibold text-lg text-gray-800 dark:text-gray-100 line-clamp-2 md:line-clamp-1">{it.title}</h3>
                   <p className="font-bold text-blue-600 mt-1">₹{it.price}</p>
                 </div>
 
@@ -100,6 +139,57 @@ export default function CartPage() {
               </div>
             </div>
 
+            <div className="space-y-4">
+              <h4 className="font-semibold text-gray-800 dark:text-gray-100">Shipping Address</h4>
+
+              {/* Mode Selection */}
+              <div className="flex gap-4 text-sm">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="addrMode"
+                    checked={addressMode === "saved"}
+                    onChange={() => setAddressMode("saved")}
+                    disabled={savedAddresses.length === 0}
+                  />
+                  <span>Saved Address</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="addrMode"
+                    checked={addressMode === "new"}
+                    onChange={() => setAddressMode("new")}
+                  />
+                  <span>New Address</span>
+                </label>
+              </div>
+
+              {/* Input Area */}
+              {addressMode === "saved" ? (
+                savedAddresses.length > 0 ? (
+                  <select
+                    value={selectedSavedAddr}
+                    onChange={(e) => setSelectedSavedAddr(e.target.value)}
+                    className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm"
+                  >
+                    {savedAddresses.map((addr, i) => (
+                      <option key={i} value={addr}>{addr.length > 40 ? addr.slice(0, 40) + "..." : addr}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <p className="text-xs text-red-500">No saved addresses found.</p>
+                )
+              ) : (
+                <textarea
+                  value={newAddress}
+                  onChange={(e) => setNewAddress(e.target.value)}
+                  placeholder="Enter full shipping address..."
+                  className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg p-2 text-sm h-20"
+                />
+              )}
+            </div>
+
             <div className="space-y-3">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Payment Method</label>
               <select
@@ -117,7 +207,7 @@ export default function CartPage() {
             </Button>
 
             <p className="text-xs text-center text-gray-500">
-              Secure checkout powered by B2C Website
+              Secure checkout powered by Ketalog
             </p>
           </div>
         </div>

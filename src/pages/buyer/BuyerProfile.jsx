@@ -2,15 +2,37 @@ import { useEffect, useState } from "react";
 import api from "../../services/api";
 import toast from "react-hot-toast";
 import useAuthStore from "../../store/authStore";
+import ProfileSkeleton from "../../components/ui/preloaders/ProfileSkeleton";
 
 export default function BuyerProfile() {
   const authUser = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
-  const [profile, setProfile] = useState({ fullName: "", address: "", lat: null, lng: null, addresses: [] });
+  const [profile, setProfile] = useState({
+    fullName: "",
+    address: "",
+    city: "",
+    state: "",
+    pincode: "",
+    addressMobile: "",
+    mobileOption: "same", // 'same' | 'different'
+    lat: null,
+    lng: null,
+    addresses: []
+  });
   const [loading, setLoading] = useState(false);
+  const [fetchingProfile, setFetchingProfile] = useState(true);
+  const [deliveryLocations, setDeliveryLocations] = useState([]);
+
+  useEffect(() => {
+    // Fetch locations dynamically
+    api.get("/location")
+      .then((res) => setDeliveryLocations(res.data))
+      .catch((err) => console.error("Failed to load locations", err));
+  }, []);
 
   useEffect(() => {
     (async () => {
+      setFetchingProfile(true);
       try {
         const res = await api.get("/buyer/profile");
         const data = res.data || {};
@@ -18,6 +40,11 @@ export default function BuyerProfile() {
           ...p,
           fullName: data.fullName || data.full_name || p.fullName,
           address: data.address || p.address,
+          city: data.city || "",
+          state: data.state || "",
+          pincode: data.pincode || "",
+          addressMobile: data.addressMobile || "",
+          mobileOption: data.addressMobile ? "different" : "same",
           lat: data.lat ?? p.lat,
           lng: data.lng ?? p.lng,
           addresses: data.addresses || p.addresses || []
@@ -25,6 +52,8 @@ export default function BuyerProfile() {
       } catch (err) {
         console.error("Failed to load buyer profile:", err);
         toast.error("Failed to load profile");
+      } finally {
+        setFetchingProfile(false);
       }
     })();
   }, []);
@@ -68,6 +97,10 @@ export default function BuyerProfile() {
       const res = await api.put("/buyer/profile", {
         fullName: profile.fullName,
         address: profile.address,
+        city: profile.city,
+        state: profile.state,
+        pincode: profile.pincode,
+        mobile: profile.mobileOption === "different" ? profile.addressMobile : "",
         lat: profile.lat,
         lng: profile.lng
       });
@@ -76,6 +109,11 @@ export default function BuyerProfile() {
         ...p,
         fullName: data.fullName || p.fullName,
         address: data.address || p.address,
+        city: data.city || "",
+        state: data.state || "",
+        pincode: data.pincode || "",
+        addressMobile: data.addressMobile || "",
+        mobileOption: data.addressMobile ? "different" : "same",
         lat: data.lat ?? p.lat,
         lng: data.lng ?? p.lng,
         addresses: data.addresses || p.addresses
@@ -105,7 +143,7 @@ export default function BuyerProfile() {
     }
     setLoading(true);
     try {
-      const res = await api.put("/buyer/profile", { address: addr });
+      const res = await api.put("/buyer/profile", { newAddress: addr });
       const data = res.data || {};
       setProfile((p) => ({ ...p, addresses: data.addresses || [addr, ...p.addresses] }));
       toast.success("Address saved");
@@ -117,10 +155,10 @@ export default function BuyerProfile() {
     }
   };
 
-  if (!authUser) return <div className="p-6">Loading user...</div>;
+  if (!authUser || fetchingProfile) return <div className="p-6"><ProfileSkeleton /></div>;
 
   return (
-    <div className="dark:text-gray-100 max-w-2xl mx-auto bg-white dark:bg-gray-800 p-6 rounded shadow space-y-6">
+    <div className="dark:text-gray-100 max-w-7xl mx-auto bg-white dark:bg-gray-800 p-6 rounded-lg shadow space-y-6">
       <div>
         <h2 className="text-2xl font-bold">Your Profile</h2>
         <p className="text-sm text-gray-600 dark:text-gray-300">
@@ -138,7 +176,7 @@ export default function BuyerProfile() {
       </div>
 
       <div>
-        <label className="text-sm font-semibold">Full address</label>
+        <label className="text-sm font-semibold">Full address (House No, Building, Street)</label>
         <textarea
           value={profile.address || ""}
           onChange={(e) => setProfile({ ...profile, address: e.target.value })}
@@ -146,9 +184,68 @@ export default function BuyerProfile() {
         />
       </div>
 
-      <div className="flex items-center gap-4">
-        <button onClick={detectLocation} className="px-4 py-2 bg-blue-600 text-white rounded">Detect my location</button>
-        <button onClick={saveProfile} disabled={loading} className="px-4 py-2 bg-green-600 text-white rounded">
+      {/* New Fields */}
+      {/* New Fields - Restricted Location Selection */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="sm:col-span-2">
+          <label className="text-sm font-semibold">Select Delivery Area *</label>
+          <select
+            value={profile.city} 
+            
+            onChange={(e) => {
+              const selected = deliveryLocations.find(l => l.area === e.target.value);
+              if (selected) {
+                setProfile({
+                  ...profile,
+                  city: selected.district, // Katni
+                  state: selected.state,
+                  pincode: selected.pincode,
+                });
+              }
+            }}
+            className="w-full border p-2 rounded mt-1 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+          >
+            <option value="">-- Choose a Delivery Location --</option>
+            {deliveryLocations.map((loc) => (
+              <option key={loc.area} value={loc.area}>
+                {loc.area} ({loc.pincode})
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-gray-500 mt-1">Delivery is currently limited to specific locations in Katni.</p>
+        </div>
+
+        <div>
+          <label className="text-sm font-semibold">City (District)</label>
+          <input
+            value={profile.city || ""}
+            readOnly
+            className="w-full border p-2 rounded mt-1 bg-gray-100 dark:bg-gray-600 cursor-not-allowed"
+          />
+        </div>
+        <div>
+          <label className="text-sm font-semibold">State</label>
+          <input
+            value={profile.state || ""}
+            readOnly
+            className="w-full border p-2 rounded mt-1 bg-gray-100 dark:bg-gray-600 cursor-not-allowed"
+          />
+        </div>
+        <div>
+          <label className="text-sm font-semibold">Pincode</label>
+          <input
+            value={profile.pincode || ""}
+            readOnly
+            className="w-full border p-2 rounded mt-1 bg-gray-100 dark:bg-gray-600 cursor-not-allowed"
+          />
+        </div>
+      </div>
+
+
+
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+        <button onClick={detectLocation} className="px-4 py-2 bg-blue-600 text-white rounded text-center">Detect my location</button>
+        <button onClick={saveProfile} disabled={loading} className="px-4 py-2 bg-green-600 text-white rounded text-center">
           {loading ? "Saving..." : "Save Profile"}
         </button>
       </div>
@@ -180,7 +277,9 @@ export default function BuyerProfile() {
             <li className="text-gray-500">No addresses found</li>
           ) : (
             profile.addresses.map((a, idx) => (
-              <li key={idx} className="bg-gray-50 dark:bg-gray-700 p-3 rounded break-words">{a}</li>
+              <li key={idx} className="bg-gray-50 dark:bg-gray-700 p-3 rounded break-words">
+                {typeof a === 'string' ? a : `${a.addressLine}, ${a.city} ${a.state} ${a.pincode}`}
+              </li>
             ))
           )}
         </ul>

@@ -11,9 +11,7 @@ const useCategoryStore = create((set, get) => ({
     set({ loading: true });
     try {
       const res = await api.get("/categories");
-      const desired = ["Fashion", "Grocery", "Furniture"];
-      const cats = res.data.filter((c) => desired.includes(c.name));
-      set({ categories: cats, loading: false });
+      set({ categories: res.data, loading: false });
     } catch (err) {
       console.error("fetchCategories:", err);
       set({ loading: false });

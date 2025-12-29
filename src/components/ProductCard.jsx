@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Heart } from "lucide-react";
+import { Heart, Star } from "lucide-react";
 import toast from "react-hot-toast";
 import useAuthStore from "../store/authStore";
 import useCartStore from "../store/cartStore";
@@ -12,7 +12,7 @@ export default function ProductCard({ product }) {
   const wishlistItems = useWishlistStore((s) => s.items);
   const navigate = useNavigate();
 
-  const isInWishlist = wishlistItems.some(
+  const isInWishlist = user && wishlistItems.some(
     (i) => i._id === product._id
   );
 
@@ -25,7 +25,6 @@ export default function ProductCard({ product }) {
     if (!user || user.role !== "buyer") return requireLogin();
     if (product.stock <= 0) return toast.error("Out of stock");
     addToCart(product, 1);
-    toast.success("Added to cart");
   };
 
   const handleWishlist = () => {
@@ -34,7 +33,7 @@ export default function ProductCard({ product }) {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow hover:shadow-lg transition p-4 flex flex-col">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow hover:shadow-lg transition p-4 flex flex-col border border-transparent dark:border-gray-700 h-full">
       <Link to={`/buyer/product/${product._id}`}>
         <div className="h-44 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden mb-3">
           {product.images?.length ? (
@@ -53,7 +52,16 @@ export default function ProductCard({ product }) {
         <h3 className="font-semibold text-lg line-clamp-1">
           {product.title}
         </h3>
-        <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 mt-1">
+
+        {/* Rating Badge */}
+        <div className="flex items-center gap-2 mt-1 mb-1">
+          <div className="flex items-center bg-green-600 text-white text-xs px-1.5 py-0.5 rounded font-bold">
+            {product.rating ? product.rating.toFixed(1) : "0.0"} <Star size={10} className="ml-0.5 fill-white" />
+          </div>
+          <span className="text-xs text-gray-500">({product.numReviews || 0})</span>
+        </div>
+
+        <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
           {product.description}
         </p>
       </Link>
@@ -80,12 +88,12 @@ export default function ProductCard({ product }) {
           <button
             onClick={handleAddToCart}
             disabled={product.stock <= 0}
-            className={`px-3 py-1 rounded text-sm text-white ${product.stock > 0
+            className={`px-3 py-1.5 rounded text-sm font-medium text-white transition-colors whitespace-nowrap ${product.stock > 0
               ? "bg-blue-600 hover:bg-blue-700"
               : "bg-gray-400 cursor-not-allowed"
               }`}
           >
-            Add
+            Add to Cart
           </button>
         </div>
       </div>

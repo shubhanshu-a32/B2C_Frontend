@@ -27,30 +27,3 @@ function apply(theme) {
 }
 
 export default useThemeStore;
-
-
-
-// import { create } from "zustand";
-
-// const useThemeStore = create((set) => ({
-//   theme: localStorage.getItem("theme") || "light",
-
-//   toggleTheme: () =>
-//     set((state) => {
-//       const newTheme = state.theme === "light" ? "dark" : "light";
-
-//       document.documentElement.classList.toggle("dark", newTheme === "dark");
-
-//       localStorage.setItem("theme", newTheme);
-
-//       return { theme: newTheme };
-//     }),
-// }));
-
-// // Apply theme on first load
-// document.documentElement.classList.toggle(
-//   "dark",
-//   localStorage.getItem("theme") === "dark"
-// );
-
-// export default useThemeStore;

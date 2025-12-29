@@ -11,7 +11,7 @@ import SellerLayout from "../layouts/SellerLayout";
 import PublicLayout from "../layouts/PublicLayout";
 
 // Buyer Pages
-import BuyerDashboard from "../pages/buyer/BuyerDashboard";
+// Buyer Pages
 import Shop from "../pages/buyer/Shop";
 import ProductDetails from "../pages/buyer/ProductDetails";
 import BuyerOrders from "../pages/buyer/BuyerOrders";
@@ -28,6 +28,8 @@ import EditProduct from "../pages/seller/EditProduct";
 import SellerProfile from "../pages/seller/SellerProfile";
 import TotalOrders from "../pages/seller/TotalOrders";
 
+
+
 export default function AppRouter() {
   return (
     <BrowserRouter>
@@ -38,10 +40,12 @@ export default function AppRouter() {
         <Route path="/login" element={<Login />} />
         <Route path="/verify-otp" element={<OTPVerify />} />
 
+
         {/* Public Shop Routes (Visible to guests and logged-in users) */}
         <Route element={<PublicLayout />}>
           <Route path="/shop" element={<Shop />} />
           <Route path="/product/:id" element={<ProductDetails />} />
+          <Route path="/buyer/seller/:sellerId" element={<SellerShop />} />
         </Route>
 
         {/* Buyer Routes */}
@@ -53,10 +57,9 @@ export default function AppRouter() {
             </ProtectedRoute>
           }
         >
-          <Route path="dashboard" element={<BuyerDashboard />} />
+          <Route index element={<Shop />} /> {/* Default to Shop */}
           <Route path="shop" element={<Shop />} />
           <Route path="product/:id" element={<ProductDetails />} />
-          <Route path="seller/:sellerId" element={<SellerShop />} />
           <Route path="orders" element={<BuyerOrders />} />
           <Route path="profile" element={<BuyerProfile />} />
           <Route path="wishlist" element={<WishlistPage />} />
@@ -80,6 +83,8 @@ export default function AppRouter() {
           <Route path="profile" element={<SellerProfile />} />
           <Route path="dashboard/total-orders" element={<TotalOrders />} />
         </Route>
+
+
 
         <Route path="*" element={<h1 className="p-10 text-center">Page Not Found</h1>} />
       </Routes>

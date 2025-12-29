@@ -1,8 +1,8 @@
 // src/components/SearchCanvas.jsx
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import debounce from "just-debounce-it"; // optional small debounce lib; install or replace with custom
-import api from "../services/api"; // optional: if you have an API endpoint for suggestions
+import debounce from "just-debounce-it"; 
+import api from "../services/api"; 
 
 export default function SearchCanvas({ open, setOpen }) {
   const [q, setQ] = useState("");

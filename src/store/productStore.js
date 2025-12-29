@@ -8,11 +8,7 @@ const useProductStore = create((set) => ({
   pages: 1,
   total: 0,
   loading: false,
-
-  /**
-   * Fetch paginated products.
-   * options: { page, limit, category, q }
-   */
+  
   fetchProducts: async (options = {}) => {
     const page = options.page || 1;
     const limit = options.limit || 12;

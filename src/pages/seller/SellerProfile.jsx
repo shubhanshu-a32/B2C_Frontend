@@ -4,6 +4,7 @@ import MapPreview from "../../components/MapPreview";
 import Button from "../../components/ui/Button";
 import useAuthStore from "../../store/authStore";
 import toast from "react-hot-toast";
+import ProfileSkeleton from "../../components/ui/preloaders/ProfileSkeleton";
 
 export default function SellerProfile() {
   const { user } = useAuthStore();
@@ -17,10 +18,11 @@ export default function SellerProfile() {
   });
 
   const [loading, setLoading] = useState(false);
+  const [fetchingProfile, setFetchingProfile] = useState(true);
 
-  // Load seller profile from backend
   useEffect(() => {
     (async () => {
+      setFetchingProfile(true);
       try {
         const res = await api.get("/seller/profile");
         const data = res.data || {};
@@ -35,6 +37,8 @@ export default function SellerProfile() {
       } catch (err) {
         console.error("Failed to load seller profile", err);
         toast.error("Failed to load seller profile");
+      } finally {
+        setFetchingProfile(false);
       }
     })();
   }, []);
@@ -95,8 +99,10 @@ export default function SellerProfile() {
     }
   };
 
+  if (fetchingProfile) return <div className="p-6"><ProfileSkeleton /></div>;
+
   return (
-    <div className="dark:text-black dark:bg-gray-800 max-w-2xl mx-auto bg-white p-6 shadow rounded-lg space-y-4">
+    <div className="dark:text-black dark:bg-gray-800 max-w-4xl mx-auto bg-white p-6 shadow rounded-lg space-y-4">
       <h2 className="dark:text-white text-2xl font-bold">Seller Profile</h2>
 
       {/* Shop Name */}
@@ -107,7 +113,7 @@ export default function SellerProfile() {
           onChange={(e) =>
             setProfile({ ...profile, shopName: e.target.value })
           }
-          className="w-full border p-2 rounded mt-1"
+          className="w-full dark:bg-gray-800 dark:text-white border p-2 rounded mt-1"
         />
       </div>
 
@@ -119,7 +125,7 @@ export default function SellerProfile() {
           onChange={(e) =>
             setProfile({ ...profile, ownerName: e.target.value })
           }
-          className="w-full border p-2 rounded mt-1"
+          className="w-full dark:bg-gray-800 dark:text-white border p-2 rounded mt-1"
         />
       </div>
 
@@ -131,7 +137,7 @@ export default function SellerProfile() {
           onChange={(e) =>
             setProfile({ ...profile, address: e.target.value })
           }
-          className="w-full border p-2 rounded mt-1"
+          className="w-full dark:bg-gray-800 dark:text-white border p-2 rounded mt-1"
         />
       </div>
 
@@ -142,7 +148,7 @@ export default function SellerProfile() {
           <MapPreview lat={profile.lat} lng={profile.lng} />
         </div>
 
-        <div className="flex flex-col gap-2">
+        <div className="flex dark:bg-gray-800 dark:text-white flex-col gap-2">
           <Button onClick={detectLocation}>Detect my location</Button>
           <div className="dark:text-white text-sm text-gray-500">
             When buyers view your shop, they can open the location directly in Google Maps.

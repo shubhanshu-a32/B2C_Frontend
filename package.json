@@ -10,7 +10,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@heroicons/react": "^2.2.0",
     "axios": "^1.13.2",
+    "jspdf": "^3.0.4",
+    "jspdf-autotable": "^5.0.2",
     "just-debounce-it": "^3.2.0",
     "lucide-react": "^0.556.0",
     "react": "^19.2.0",

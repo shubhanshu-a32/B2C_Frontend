@@ -2,49 +2,164 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import useAuthStore from "../store/authStore";
 import useThemeStore from "../store/themeStore";
+import useCartStore from "../store/cartStore";
+import useWishlistStore from "../store/wishlistStore";
 import CategoriesDrawer from "./CategoriesDrawer";
 import GlobalSearch from "./GlobalSearch";
+import Logo from '../assets/logo/Ketalog_Logo.jpeg';
 
 export default function NavBar() {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const { theme, toggleTheme } = useThemeStore();
+  const cartItems = useCartStore((s) => s.items);
+  const wishlistItems = useWishlistStore((s) => s.items);
   const [openCategories, setOpenCategories] = useState(false);
 
   const navigate = useNavigate();
 
+
+
   return (
     <>
-      <nav className="w-full bg-white dark:bg-gray-800 shadow px-4 py-3 flex items-center justify-between">
+      <nav className="w-full sm:text-sm text-lg bg-white dark:bg-gray-800 shadow px-4 py-3 flex items-center justify-between sticky top-0 z-50">
         <div className="flex items-center gap-3">
-          <button onClick={() => setOpenCategories(true)} className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700">
-            <svg className="w-6 h-6 text-gray-700 dark:text-gray-200" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
-          </button>
-          <Link to="/" className="text-xl font-bold text-brand dark:text-white">B2C Website </Link>
-          <p className="text-gray-600 dark:text-gray-300">
-            Shop from trusted sellers. Explore products by category.
-          </p>
+          {(!user || user.role !== "seller") && (
+            <button onClick={() => setOpenCategories(true)} className="p-3 rounded hover:bg-gray-100 dark:hover:bg-gray-700">
+              <svg className="w-6 h-6 text-gray-700 dark:text-gray-200" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
+            </button>
+          )}
+          <Link
+            to={user ? (user.role === "seller" ? "/seller/dashboard" : "/buyer/shop") : "/"}
+            className={`sm:text-xl text-xl font-bold text-brand dark:text-white ${user?.role === "seller" ? "ml-3" : ""}`}
+          >
+            <div className="flex items-center gap-2">
+              <img src={Logo} alt="Logo" className="w-10 h-10" />
+              <span className="text-xl font-semibold">
+                KETALOG
+              </span>
+            </div>
+          </Link>
+          {/* {!user && (
+            <p className="text-gray-600 sm:text-sm dark:text-gray-300 hidden md:block">
+              Shop from trusted sellers. Explore products by category.
+            </p>
+          )} */}
         </div>
 
-        <GlobalSearch />
+        {/* Hide Search for Sellers */}
+        {(!user || user.role !== "seller") && <GlobalSearch />}
 
-        <div className="flex items-center justify-between gap-3">
-          {!user ? (
-            <button
-              onClick={() => navigate("/login")}
-              className="px-4 py-1 bg-blue-600 text-white rounded"
-            >Login
-            </button>
-          ) : (
-            <>
-              <Link to={user.role === "seller" ? "/seller/dashboard" : "/buyer/dashboard"} className="px-3 py-1 text-gray-700 dark:text-gray-200">Dashboard</Link>
-              <button onClick={logout} className="px-3 py-1 bg-red-500 text-white rounded">Logout</button>
-            </>
+        <div className="flex items-center gap-4">
+
+          {/* Buyer Navigation Links */}
+          {user && user.role === "buyer" && (
+            <div className="flex items-center gap-4 text-sm font-medium text-gray-700 dark:text-gray-200">
+              <Link to="/buyer/cart" className="hover:text-blue-600 relative p-1">
+                <span className="sr-only">Cart</span>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+                </svg>
+                {cartItems.length > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                    {cartItems.length}
+                  </span>
+                )}
+              </Link>
+            </div>
           )}
 
-          <button onClick={toggleTheme} className="px-3 py-1 rounded bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100">
-            {theme === "light" ? "Dark" : "Light"}
-          </button>
+
+          <div className="flex items-center gap-3">
+            {!user ? (
+              <div className="relative group">
+                <button className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded transition flex items-center gap-2">
+                  Login
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                </button>
+
+                {/* Dropdown Menu - invisible bridge using padding */}
+                <div className="absolute right-0 top-full w-32 pt-2 hidden group-hover:block z-50">
+                  <div className="bg-white dark:bg-gray-800 border dark:border-gray-700 shadow-xl rounded-md overflow-hidden">
+                    <button
+                      onClick={() => navigate("/login?role=buyer")}
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    >
+                      Buyer
+                    </button>
+                    <button
+                      onClick={() => navigate("/login?role=seller")}
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    >
+                      Seller
+                    </button>
+
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <>
+                {user.role === "seller" ? (
+                  <div className="flex items-center gap-4">
+                    <Link to="/seller/dashboard" className="text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-blue-600">
+                      Dashboard
+                    </Link>
+                    <div className="relative group mr-2">
+                      <button className="px-3 py-1 flex items-center gap-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+                        Profile
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                      </button>
+
+                      {/* Dropdown Menu - invisible bridge using padding */}
+                      <div className="absolute right-0 top-full w-48 pt-2 hidden group-hover:block z-50">
+                        <div className="bg-white dark:bg-gray-800 border dark:border-gray-700 shadow-xl rounded-md overflow-hidden">
+                          <Link to="/seller/profile" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">Profile</Link>
+                          <Link to="/seller/products" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">Manage Products</Link>
+                          <Link to="/seller/add-product" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">Add Product</Link>
+                          <div className="border-t dark:border-gray-700 mt-1 pt-1">
+                            <button onClick={logout} className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10">Logout</button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="relative group">
+                    <button className="px-3 py-1 flex items-center gap-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+                      Profile
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                    </button>
+
+                    {/* Dropdown Menu - invisible bridge using padding */}
+                    <div className="absolute right-0 top-full w-48 pt-2 hidden group-hover:block z-50">
+                      <div className="bg-white dark:bg-gray-800 border dark:border-gray-700 shadow-xl rounded-md overflow-hidden">
+                        <Link to="/buyer/profile" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">Profile</Link>
+                        <Link to="/buyer/shop" state={null} className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">Shop</Link>
+                        <Link to="/buyer/orders" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">Orders</Link>
+                        <div className="relative">
+                          <Link to="/buyer/wishlist" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex justify-between items-center">
+                            Wishlist
+                            {wishlistItems.length > 0 && <span className="bg-red-500 text-white text-xs rounded-full px-1.5">{wishlistItems.length}</span>}
+                          </Link>
+                        </div>
+                        <div className="border-t dark:border-gray-700 mt-1 pt-1">
+                          <button onClick={logout} className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10">Logout</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+
+            <button onClick={toggleTheme} className="p-2 rounded bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100">
+              {theme === "light" ? (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+              )}
+            </button>
+          </div>
         </div>
       </nav>
 

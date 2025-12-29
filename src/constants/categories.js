@@ -1,4 +1,4 @@
-import Grocery from '../assets/hero_section/groceries.jpeg';
+import Grocery from '../assets/hero_section/groceries1.jpeg';
 import Electronics from '../assets/hero_section/electronics.jpeg';
 import Fashion from '../assets/hero_section/fashion.jpeg'
 import Electricals from '../assets/hero_section/electricals.jpeg';

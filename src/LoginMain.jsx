@@ -11,7 +11,7 @@ export default function LoginMain() {
     <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       <header className="w-full flex justify-between items-center px-6 py-4 shadow bg-white dark:bg-gray-800">
         <Link to="/" className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-          B2C Website
+          Ketalog
         </Link>
 
         <button

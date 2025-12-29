@@ -1,11 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { CATEGORIES } from "../constants/categories";
+import useCategoryStore from "../store/categoryStore"; 
 
 export default function GlobalSearch() {
     const navigate = useNavigate();
     const [query, setQuery] = useState("");
     const [suggestions, setSuggestions] = useState([]);
+    const { categories, fetchCategories } = useCategoryStore();
+
+    useEffect(() => {
+        fetchCategories();
+    }, [fetchCategories]);
 
     const handleSearch = (term) => {
         if (!term.trim()) return;
@@ -26,16 +31,17 @@ export default function GlobalSearch() {
         const term = value.toLowerCase();
         const matches = [];
 
-        // Search Categories and Subcategories
-        CATEGORIES.forEach((c) => {
-            if (c.title.toLowerCase().includes(term)) {
-                matches.push({ type: 'category', title: c.title, id: c.id });
+        categories.forEach((c) => {
+            if (c.name.toLowerCase().includes(term)) {
+                matches.push({ type: 'category', title: c.name, id: c.slug }); 
             }
-            c.subs.forEach(s => {
-                if (s.title.toLowerCase().includes(term)) {
-                    matches.push({ type: 'subcategory', title: s.title, id: s.id, catId: c.id });
-                }
-            });
+            if (c.subCategories) {
+                c.subCategories.forEach(s => {
+                    if (s.name.toLowerCase().includes(term)) {
+                        matches.push({ type: 'subcategory', title: s.name, id: s.slug, catId: c.slug });
+                    }
+                });
+            }
         });
 
         setSuggestions(matches.slice(0, 8));
@@ -54,13 +60,15 @@ export default function GlobalSearch() {
     };
 
     return (
-        <div className="relative w-full max-w-xl mx-auto hidden md:block group">
+        <div className="relative w-full max-w-xl sm:px-6 mx-auto hidden md:block group">
             <div className="border-none flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg border border-transparent focus-within:border-blue-500 transition-colors">
                 <svg className="w-5 h-5 ml-3 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
                 <input
                     type="text"
+                    name="q"
+                    id="search-input"
                     value={query}
                     onChange={handleChange}
                     onKeyDown={(e) => e.key === "Enter" && handleSearch(query)}

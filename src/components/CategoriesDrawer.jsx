@@ -1,72 +1,45 @@
-// src/components/CategoriesDrawer.jsx
-import { useState } from "react";
+import useAuthStore from "../store/authStore";
+import useCategoryStore from "../store/categoryStore"; // Import store
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
-const CATEGORIES = [
-  {
-    id: "fashion",
-    title: "FASHION",
-    subs: [
-      { id: "clothing", title: "Clothing" },
-      { id: "footwear", title: "Footwear" },
-    ],
-  },
-  {
-    id: "electronics",
-    title: "ELECTRONICS",
-    subs: [
-      { id: "mobile-phones", title: "Mobile Phones" },
-      { id: "laptops", title: "Laptops" },
-      { id: "smart-televisions", title: "Smart Televisions" },
-    ],
-  },
-  {
-    id: "electricals",
-    title: "ELECTRICALS",
-    subs: [
-      { id: "lights", title: "Lights" },
-      { id: "wires", title: "Wires" },
-    ],
-  },
-  {
-    id: "home-kitchen",
-    title: "HOME & KITCHEN",
-    subs: [
-      { id: "furniture", title: "Furniture" },
-      { id: "kitchen-equipments", title: "Kitchen Equipments" },
-    ],
-  },
-  {
-    id: "food-grocery",
-    title: "FOOD & GROCERY",
-    subs: [
-      { id: "fruits", title: "Fruits" },
-      { id: "vegetables", title: "Vegetables" },
-    ],
-  },
-  {
-    id: "daily-needs",
-    title: "DAILY NEEDS",
-    subs: [
-      { id: "bread", title: "Bread" },
-      { id: "milk", title: "Milk" },
-      { id: "egg", title: "Egg" },
-      { id: "butter", title: "Butter" },
-    ],
-  },
-];
+import api from "../services/api";
+import toast from "react-hot-toast";
 
 export default function CategoriesDrawer({ open, setOpen }) {
   const [expanded, setExpanded] = useState(null);
   const navigate = useNavigate();
+  const user = useAuthStore((s) => s.user);
+  const { categories, fetchCategories } = useCategoryStore();
+
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
 
   if (!open) return null;
 
-  const goToShop = (category, subcategory) => {
-    navigate("/shop", {
-      state: { category: category, subcategory: subcategory },
-    });
-    setOpen(false);
+  const goToShop = async (category, subcategory) => {
+    try {
+      // Check if products exist for this sub-category using the API
+
+      const res = await api.get("/products", {
+        params: { category: category?.slug || category, subcategory: subcategory?.slug || subcategory, limit: 1 }
+      });
+
+      if (!res.data.data || res.data.data.length === 0) {
+        toast.error("No product available");
+        // Still navigate? The original code returned.
+        return;
+      }
+
+      const path = user && user.role === "buyer" ? "/buyer/shop" : "/shop";
+      navigate(path, {
+        state: { category: category?.slug, subcategory: subcategory?.slug },
+      });
+      setOpen(false);
+    } catch (err) {
+      console.error("Product check failed", err);
+      toast.error("Could not verify product availability");
+    }
   };
 
   return (
@@ -78,10 +51,10 @@ export default function CategoriesDrawer({ open, setOpen }) {
       />
 
       {/* Drawer */}
-      <aside className="absolute left-0 top-0 bottom-0 w-80 bg-white dark:bg-gray-900 shadow-xl p-4 overflow-y-auto">
+      <aside className="absolute left-0 top-[73px] bottom-0 w-80 bg-white dark:bg-gray-900 shadow-xl p-4 overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+          <h3 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
             All Categories
           </h3>
           <button
@@ -94,37 +67,41 @@ export default function CategoriesDrawer({ open, setOpen }) {
 
         {/* Categories */}
         <div className="space-y-3">
-          {CATEGORIES.map((cat) => (
+          {categories.map((cat) => (
             <div
-              key={cat.id}
+              key={cat._id}
               className="border-b border-gray-200 dark:border-gray-700 pb-3"
             >
               <button
                 onClick={() =>
-                  setExpanded(expanded === cat.id ? null : cat.id)
+                  setExpanded(expanded === cat._id ? null : cat._id)
                 }
-                className="w-full flex items-center justify-between py-2"
+                className="w-full flex items-center justify-between py-2 px-3"
               >
-                <span className="font-semibold text-gray-800 dark:text-gray-200">
-                  {cat.title}
+                <span className="font-bold uppercase tracking-wide">
+                  {cat.name}
                 </span>
                 <span className="text-gray-500 dark:text-gray-400">
-                  {expanded === cat.id ? "−" : "+"}
+                  {expanded === cat._id ? "−" : "+"}
                 </span>
               </button>
 
               {/* Subcategories */}
-              {expanded === cat.id && (
-                <div className="mt-2 pl-3 space-y-1">
-                  {cat.subs.map((sub) => (
-                    <button
-                      key={sub.id}
-                      onClick={() => goToShop(cat.id, sub.id)}
-                      className="block w-full text-left py-1 text-gray-700 dark:text-gray-300 hover:text-blue-600"
-                    >
-                      {sub.title}
-                    </button>
-                  ))}
+              {expanded === cat._id && (
+                <div className="mt-2 pl-6 space-y-1">
+                  {cat.subCategories && cat.subCategories.length > 0 ? (
+                    cat.subCategories.map((sub) => (
+                      <button
+                        key={sub._id}
+                        onClick={() => goToShop(cat, sub)}
+                        className="block w-full text-left py-1 text-gray-700 dark:text-gray-300 hover:text-blue-600"
+                      >
+                        {sub.name}
+                      </button>
+                    ))
+                  ) : (
+                    <p className="text-sm text-gray-400 italic">No subcategories</p>
+                  )}
                 </div>
               )}
             </div>

@@ -14,7 +14,9 @@ api.interceptors.request.use((config) => {
 
 // Auto refresh logic
 api.interceptors.response.use(
-  (res) => res,
+  async (res) => {
+    return res;
+  },
   async (error) => {
     const original = error.config;
 
