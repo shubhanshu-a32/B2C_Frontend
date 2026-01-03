@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation as useGeoLocation } from "../../context/LocationContext";
 import api from "../../services/api";
 import ProductCard from "../../components/ProductCard";
 import ProductSkeleton from "../../components/ui/preloaders/ProductSkeleton";
@@ -8,6 +9,8 @@ import ImageSlider from "../../components/ImageSlider";
 import toast from "react-hot-toast";
 import useAuthStore from "../../store/authStore";
 import useCategoryStore from "../../store/categoryStore"; // Import store
+import { LayoutGrid } from "lucide-react";
+import { categoryIcons, DefaultCategoryIcon } from "../../constants/categoryIcons";
 
 // Copied CategoryRow from Landing.jsx for reuse
 function CategoryRow({ title, categoryId }) {
@@ -15,11 +18,18 @@ function CategoryRow({ title, categoryId }) {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
+  const { location: geoLocation } = useGeoLocation();
 
   useEffect(() => {
     setLoading(true);
+    const params = { category: categoryId, limit: 8 };
+    if (geoLocation) {
+      params.pincode = geoLocation.pincode;
+      params.area = geoLocation.area;
+    }
+
     api.get("/products", {
-      params: { category: categoryId, limit: 8 }
+      params
     })
       .then((res) => {
         setProducts(res.data.data);
@@ -28,7 +38,7 @@ function CategoryRow({ title, categoryId }) {
         console.error(`Failed to load ${title}`, err);
       })
       .finally(() => setLoading(false));
-  }, [categoryId, title]);
+  }, [categoryId, title, geoLocation]);
 
   if (!loading && products.length === 0) {
     return (
@@ -96,6 +106,7 @@ function CategoryRow({ title, categoryId }) {
 
 export default function Shop() {
   const location = useLocation();
+  const { location: geoLocation } = useGeoLocation();
   const navigate = useNavigate();
   const { categories, fetchCategories } = useCategoryStore();
 
@@ -125,7 +136,7 @@ export default function Shop() {
     fetchCategories();
   }, [fetchCategories]);
 
-  
+
   const selectedCategory = categories.find(c => c._id === category || c.slug === category);
 
   // Check if any filters are active (to hide the deal sections)
@@ -146,7 +157,7 @@ export default function Shop() {
   useEffect(() => {
     // Reset page to 1 on filter change
     setPage(1);
-  }, [category, subcategory, filters]);
+  }, [category, subcategory, filters, geoLocation]);
 
   // Fetch Sellers
   useEffect(() => {
@@ -158,22 +169,27 @@ export default function Shop() {
   useEffect(() => {
     loadProducts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [category, subcategory, filters, page]);
+  }, [category, subcategory, filters, page, geoLocation]);
 
   const loadProducts = async () => {
     setLoadingProducts(true);
     try {
-      const res = await api.get("/products", {
-        params: {
-          page,
-          limit,
-          ...(filters.q && { q: filters.q }),
-          ...(category && { category }),
-          ...(subcategory && { subcategory }),
-          ...(filters.maxPrice && { maxPrice: filters.maxPrice }),
-          ...(filters.inStock && { inStock: true }),
-        },
-      });
+      const params = {
+        page,
+        limit,
+        ...(filters.q && { q: filters.q }),
+        ...(category && { category }),
+        ...(subcategory && { subcategory }),
+        ...(filters.maxPrice && { maxPrice: filters.maxPrice }),
+        ...(filters.inStock && { inStock: true }),
+      };
+
+      if (geoLocation) {
+        params.pincode = geoLocation.pincode;
+        params.area = geoLocation.area;
+      }
+
+      const res = await api.get("/products", { params });
       // Small delay to prevent flicker if fast? No, skeletons are fine.
 
       if (!res.data.data.length && page === 1) {
@@ -182,7 +198,8 @@ export default function Shop() {
           !!category ||
           !!subcategory ||
           !!filters.maxPrice ||
-          filters.inStock;
+          filters.inStock ||
+          !!geoLocation; // Also notify if location filter returns nothing
         if (hasActiveFilter) toast("Product not available");
       }
 
@@ -209,33 +226,41 @@ export default function Shop() {
         </h2>
 
         <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+
+
+
           <button
             onClick={() => {
               setCategory("");
               setSubcategory("");
               setOpenCategory(null);
             }}
-            className={`flex-shrink-0 px-6 py-3 rounded-full border transition whitespace-nowrap font-medium
+            className={`flex-shrink-0 px-6 py-3 rounded-full border transition whitespace-nowrap font-medium flex items-center gap-2
               ${!category
                 ? "bg-blue-600 text-white border-blue-600 shadow-md"
                 : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
               }`}
           >
-            All
+            <span className="text-lg">All</span>
+            <LayoutGrid size={20} />
           </button>
-          {categories.map((cat) => (
-            <button
-              key={cat._id}
-              onClick={() => setOpenCategory(openCategory === cat._id ? null : cat._id)}
-              className={`flex-shrink-0 px-6 py-3 rounded-full border transition whitespace-nowrap font-medium
-                ${openCategory === cat._id
-                  ? "bg-blue-600 text-white border-blue-600 shadow-md"
-                  : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
-                }`}
-            >
-              {cat.name}
-            </button>
-          ))}
+          {categories.map((cat) => {
+            const Icon = categoryIcons[cat.name.toLowerCase()] || categoryIcons[cat.slug?.toLowerCase()] || DefaultCategoryIcon;
+            return (
+              <button
+                key={cat._id}
+                onClick={() => setOpenCategory(openCategory === cat._id ? null : cat._id)}
+                className={`flex-shrink-0 px-6 py-3 rounded-full border transition whitespace-nowrap font-medium flex items-center gap-2
+                  ${openCategory === cat._id
+                    ? "bg-blue-600 text-white border-blue-600 shadow-md"
+                    : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  }`}
+              >
+                <span className="text-lg">{cat.name}</span>
+                <Icon size={20} />
+              </button>
+            );
+          })}
         </div>
 
         {/* Subcategories Expansion Panel */}

@@ -202,6 +202,12 @@ export default function ProductDetails() {
             <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed whitespace-pre-line">
               {product.description || "No description available for this product."}
             </p>
+            {product.variant && (
+              <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg border border-gray-100 dark:border-gray-700 mt-3 inline-block">
+                <span className="text-gray-500 dark:text-gray-400 text-xs uppercase font-bold tracking-wider block mb-1">Variant</span>
+                <span className="text-gray-900 dark:text-white font-medium">{product.variant}</span>
+              </div>
+            )}
           </div>
 
           {/* Service Badges */}
@@ -298,7 +304,7 @@ export default function ProductDetails() {
         </div>
 
       </div>
-      
-       </div>
+
+    </div>
   );
 }

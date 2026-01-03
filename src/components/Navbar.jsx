@@ -6,6 +6,7 @@ import useCartStore from "../store/cartStore";
 import useWishlistStore from "../store/wishlistStore";
 import CategoriesDrawer from "./CategoriesDrawer";
 import GlobalSearch from "./GlobalSearch";
+import LocationFilter from "./LocationFilter";
 import Logo from '../assets/logo/Ketalog_Logo.jpeg';
 
 export default function NavBar() {
@@ -162,6 +163,9 @@ export default function NavBar() {
           </div>
         </div>
       </nav>
+
+      {/* Location Filter Bar - Buyers/Public Only */}
+      {(!user || user.role !== "seller") && <LocationFilter />}
 
       <CategoriesDrawer open={openCategories} setOpen={setOpenCategories} />
 

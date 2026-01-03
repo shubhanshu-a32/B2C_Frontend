@@ -48,6 +48,7 @@ export default function EditProduct() {
         </select>
 
         <Input label="Stock" name="stock" type="number" value={form.stock} onChange={change} />
+        <Input label="Variant" name="variant" value={form.variant || ""} onChange={change} placeholder="e.g. XL, Red" />
       </div>
 
       <Button className="mt-6 w-full" onClick={submit}>

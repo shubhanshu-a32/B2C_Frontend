@@ -39,17 +39,15 @@ export default function BuyerOrders() {
   const [stats, setStats] = useState({ totalOrders: 0, totalSpent: 0 });
 
   useEffect(() => {
-    // Fetch stats separately to ensure we get totals across all pages
-    api.get("/orders?limit=1000").then(({ data }) => {
-      // Assuming endpoint returns paginated data structure
-      const allOrders = data.data || [];
-      let spent = 0;
-      allOrders.forEach(o => spent += o.totalAmount);
-      setStats({
-        totalOrders: allOrders.length, // or data.total if API provides accurate total count
-        totalSpent: spent
-      });
-    }).catch(err => console.error("Failed to load stats", err));
+    // Fetch stats from backend aggregation
+    api.get("/orders/stats")
+      .then(({ data }) => {
+        setStats({
+          totalOrders: data.totalOrders || 0,
+          totalSpent: data.totalSpent || 0
+        });
+      })
+      .catch(err => console.error("Failed to load stats", err));
   }, []);
 
   const statusColor = (status) => {
@@ -126,7 +124,9 @@ export default function BuyerOrders() {
                 </div>
                 <div>
                   <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">Total</span>
-                  <p className="text-sm font-semibold dark:text-gray-300">₹{order.totalAmount}</p>
+                  <p className="text-sm font-semibold dark:text-gray-300">
+                    ₹{order.totalAmount - (order.shippingCharge || 0)} + ₹{order.shippingCharge || 0} = ₹{order.totalAmount}
+                  </p>
                 </div>
                 <div>
                   <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">Order #</span>
@@ -170,7 +170,7 @@ export default function BuyerOrders() {
                     </button>
 
                     <div className="font-semibold text-gray-900 dark:text-gray-100 w-20 text-right">
-                      ₹{item.price}
+                      ₹{order.totalAmount}
                     </div>
                   </div>
                 ))}

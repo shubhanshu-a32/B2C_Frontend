@@ -14,6 +14,7 @@ export default function AddProduct() {
     description: "",
     price: "",
     stock: "",
+    variant: "",
     category: "",
     subcategory: "",
   });
@@ -271,6 +272,17 @@ export default function AddProduct() {
                   type="number"
                   placeholder="0"
                   value={form.stock}
+                  onChange={handleChange}
+                  className={inputClass}
+                />
+              </div>
+
+              <div>
+                <label className={labelClass}>Variant (e.g. Size, Color)</label>
+                <input
+                  name="variant"
+                  placeholder="e.g. XL, Red, 128GB"
+                  value={form.variant}
                   onChange={handleChange}
                   className={inputClass}
                 />

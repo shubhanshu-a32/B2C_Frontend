@@ -1,3 +1,4 @@
+import { useLocation } from "../context/LocationContext";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import NavBar from "../components/Navbar";
@@ -11,17 +12,27 @@ import useCategoryStore from "../store/categoryStore"; // Import store
 import api from "../services/api";
 import toast from "react-hot-toast";
 
+import { LayoutGrid } from "lucide-react";
+import { categoryIcons, DefaultCategoryIcon } from "../constants/categoryIcons";
+
 // Category Row Component (Internal)
 function CategoryRow({ title, categoryId }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
+  const { location } = useLocation();
 
   useEffect(() => {
     setLoading(true);
+    const params = { category: categoryId, limit: 8 };
+    if (location) {
+      params.pincode = location.pincode;
+      params.area = location.area;
+    }
+
     api.get("/products", {
-      params: { category: categoryId, limit: 8 }
+      params
     })
       .then((res) => {
         setProducts(res.data.data);
@@ -30,7 +41,7 @@ function CategoryRow({ title, categoryId }) {
         console.error(`Failed to load ${title}`, err);
       })
       .finally(() => setLoading(false));
-  }, [categoryId, title]);
+  }, [categoryId, title, location]);
 
   if (!loading && products.length === 0) {
     return (
@@ -109,6 +120,7 @@ export default function MainLanding() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [limit] = useState(8);
+  const { location } = useLocation();
 
   useEffect(() => {
     fetchCategories();
@@ -116,6 +128,9 @@ export default function MainLanding() {
 
   // Fetch Sellers
   useEffect(() => {
+    // Ideally sellers could also be filtered by location, but let's stick to products first as requested.
+    // Or maybe we should filter sellers too? The API for sellers likely needs update if we want that.
+    // For now, let's leave seller list global or maybe basic.
     api.get("/seller/profile/list")
       .then((res) => setSellers(res.data))
       .catch((err) => console.error("Failed to load sellers", err));
@@ -124,8 +139,14 @@ export default function MainLanding() {
   // Fetch Featured Products for Slider
   useEffect(() => {
     setLoadingProducts(true);
+    const params = { page, limit };
+    if (location) {
+      params.pincode = location.pincode;
+      params.area = location.area;
+    }
+
     api.get("/products", {
-      params: { page, limit }
+      params
     })
       .then((res) => {
         setProducts(res.data.data);
@@ -135,7 +156,7 @@ export default function MainLanding() {
         console.error("Failed to load featured products", err);
       })
       .finally(() => setLoadingProducts(false));
-  }, [page, limit]);
+  }, [page, limit, location]);
 
   const openSubCategory = (cat, sub) => {
     navigate("/shop", {
@@ -161,23 +182,28 @@ export default function MainLanding() {
           <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
             <button
               onClick={() => navigate("/shop")}
-              className="flex-shrink-0 px-6 py-3 rounded-full border transition whitespace-nowrap font-medium bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+              className="flex-shrink-0 px-6 py-3 rounded-full border transition whitespace-nowrap font-medium bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
             >
-              All
+              <span className="text-lg">All</span>
+              <LayoutGrid size={20} />
             </button>
-            {categories.map((cat) => (
-              <button
-                key={cat._id}
-                onClick={() => setOpenCategory(openCategory === cat._id ? null : cat._id)}
-                className={`flex-shrink-0 px-6 py-3 rounded-full border transition whitespace-nowrap font-medium
-                  ${openCategory === cat._id
-                    ? "bg-blue-600 text-white border-blue-600 shadow-md"
-                    : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
-                  }`}
-              >
-                {cat.name}
-              </button>
-            ))}
+            {categories.map((cat) => {
+              const Icon = categoryIcons[cat.name.toLowerCase()] || categoryIcons[cat.slug?.toLowerCase()] || DefaultCategoryIcon;
+              return (
+                <button
+                  key={cat._id}
+                  onClick={() => setOpenCategory(openCategory === cat._id ? null : cat._id)}
+                  className={`flex-shrink-0 px-6 py-3 rounded-full border transition whitespace-nowrap font-medium flex items-center gap-2
+                    ${openCategory === cat._id
+                      ? "bg-blue-600 text-white border-blue-600 shadow-md"
+                      : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+                    }`}
+                >
+                  <span className="text-lg">{cat.name}</span>
+                  <Icon size={18} />
+                </button>
+              );
+            })}
           </div>
 
           {/* Subcategories Expansion Panel */}

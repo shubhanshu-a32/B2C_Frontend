@@ -1,21 +1,41 @@
 import useCartStore from "../../store/cartStore";
+import { useLocation } from "../../context/LocationContext";
 import { useState, useEffect } from "react";
 import Button from "../../components/ui/Button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import toast from "react-hot-toast";
 
+const calcShipping = (itemCount, total) => {
+  if (itemCount === 1) {
+    if (total > 2000) return 0;
+    if (total < 500) return 80;
+    return 100;
+  }
+  if (total > 2000) {
+    if (itemCount >= 5) return 0;
+    return 100;
+  }
+  return 100;
+};
+
 export default function CartPage() {
   const { items, removeFromCart, updateQty, placeOrder, loading } = useCartStore();
+  const navigate = useNavigate();
   const [paymentType, setPaymentType] = useState("COD");
 
   // Address State
+  const { location } = useLocation();
   const [savedAddresses, setSavedAddresses] = useState([]);
-  const [addressMode, setAddressMode] = useState("saved"); // 'saved' | 'new'
+  const [addressMode, setAddressMode] = useState("current"); // 'current' | 'saved' | 'new'
   const [selectedSavedAddr, setSelectedSavedAddr] = useState("");
   const [newAddress, setNewAddress] = useState("");
 
+  const currentLocationStr = location ? `${location.area}, ${location.district}, ${location.state} - ${location.pincode}` : "";
+
   const total = items.reduce((s, i) => s + i.price * i.qty, 0);
+  const shipping = calcShipping(items.length, total);
+  const grandTotal = total + shipping;
 
   useEffect(() => {
     // Fetch saved addresses from profile
@@ -25,16 +45,24 @@ export default function CartPage() {
         setSavedAddresses(addrs);
         if (addrs.length > 0) {
           setSelectedSavedAddr(addrs[0]);
-        } else {
-          setAddressMode("new");
         }
+        // If saved addresses exist, default is still 'current' if available, else 'saved'
+        if (!location && addrs.length > 0) setAddressMode("saved");
+        else if (!location && addrs.length === 0) setAddressMode("new");
       })
       .catch((err) => console.error("Failed to load addresses", err));
   }, []);
 
   const checkout = async () => {
     let finalAddress = "";
-    if (addressMode === "saved") {
+
+    if (addressMode === "current") {
+      if (!currentLocationStr) {
+        toast.error("Current location unavailable");
+        return;
+      }
+      finalAddress = currentLocationStr;
+    } else if (addressMode === "saved") {
       if (!selectedSavedAddr) {
         toast.error("Please select a saved address");
         return;
@@ -50,6 +78,7 @@ export default function CartPage() {
 
     try {
       await placeOrder(paymentType, { fullAddress: finalAddress });
+      navigate("/buyer/order-success");
     } catch (err) {
       // errors handled in store
     }
@@ -131,11 +160,13 @@ export default function CartPage() {
               </div>
               <div className="flex justify-between text-gray-600 dark:text-gray-400">
                 <span>Shipping</span>
-                <span className="text-green-600">Free</span>
+                <span className={shipping === 0 ? "text-green-600" : "text-gray-900 dark:text-white"}>
+                  {shipping === 0 ? "Free" : `₹${shipping}`}
+                </span>
               </div>
               <div className="border-t dark:border-gray-700 pt-3 flex justify-between font-bold text-lg text-gray-900 dark:text-white">
                 <span>Total</span>
-                <span>₹{total}</span>
+                <span>₹{grandTotal}</span>
               </div>
             </div>
 
@@ -143,51 +174,70 @@ export default function CartPage() {
               <h4 className="font-semibold text-gray-800 dark:text-gray-100">Shipping Address</h4>
 
               {/* Mode Selection */}
-              <div className="flex gap-4 text-sm">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="addrMode"
-                    checked={addressMode === "saved"}
-                    onChange={() => setAddressMode("saved")}
-                    disabled={savedAddresses.length === 0}
-                  />
-                  <span>Saved Address</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="addrMode"
-                    checked={addressMode === "new"}
-                    onChange={() => setAddressMode("new")}
-                  />
-                  <span>New Address</span>
-                </label>
-              </div>
+              <div className="flex flex-col gap-2 text-sm">
+                {location && (
+                  <label className="flex items-center gap-2 cursor-pointer bg-blue-50 dark:bg-blue-900/20 p-2 rounded-lg border border-blue-100 dark:border-blue-800">
+                    <input
+                      type="radio"
+                      name="addrMode"
+                      checked={addressMode === "current"}
+                      onChange={() => setAddressMode("current")}
+                    />
+                    <div>
+                      <span className="font-semibold text-blue-700 dark:text-blue-300">Default: Current Location</span>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{currentLocationStr}</p>
+                    </div>
+                  </label>
+                )}
 
-              {/* Input Area */}
-              {addressMode === "saved" ? (
-                savedAddresses.length > 0 ? (
-                  <select
-                    value={selectedSavedAddr}
-                    onChange={(e) => setSelectedSavedAddr(e.target.value)}
-                    className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm"
-                  >
-                    {savedAddresses.map((addr, i) => (
-                      <option key={i} value={addr}>{addr.length > 40 ? addr.slice(0, 40) + "..." : addr}</option>
-                    ))}
-                  </select>
-                ) : (
-                  <p className="text-xs text-red-500">No saved addresses found.</p>
-                )
-              ) : (
-                <textarea
-                  value={newAddress}
-                  onChange={(e) => setNewAddress(e.target.value)}
-                  placeholder="Enter full shipping address..."
-                  className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg p-2 text-sm h-20"
-                />
-              )}
+                <div className="flex gap-4 mt-1">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="addrMode"
+                      checked={addressMode === "saved"}
+                      onChange={() => setAddressMode("saved")}
+                      disabled={savedAddresses.length === 0}
+                    />
+                    <span>Saved Address</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="addrMode"
+                      checked={addressMode === "new"}
+                      onChange={() => setAddressMode("new")}
+                    />
+                    <span>New Address</span>
+                  </label>
+                </div>
+
+                {/* Input Area */}
+                {addressMode === "saved" && (
+                  savedAddresses.length > 0 ? (
+                    <select
+                      value={selectedSavedAddr}
+                      onChange={(e) => setSelectedSavedAddr(e.target.value)}
+                      className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-sm"
+                    >
+                      {savedAddresses.map((addr, i) => (
+                        <option key={i} value={addr}>{addr.length > 40 ? addr.slice(0, 40) + "..." : addr}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <p className="text-xs text-red-500">No saved addresses found.</p>
+                  )
+                )}
+
+                {addressMode === "new" && (
+                  <textarea
+                    value={newAddress}
+                    onChange={(e) => setNewAddress(e.target.value)}
+                    placeholder="Enter full shipping address..."
+                    className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg p-2 text-sm h-20"
+                  />
+                )}
+              </div>
             </div>
 
             <div className="space-y-3">

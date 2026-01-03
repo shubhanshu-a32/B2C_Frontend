@@ -14,25 +14,40 @@ export default function SellerProfile() {
     ownerName: "",
     address: "",
     lat: null,
-    lng: null
+    lng: null,
+    pincode: "",
+    area: ""
   });
 
   const [loading, setLoading] = useState(false);
   const [fetchingProfile, setFetchingProfile] = useState(true);
+  const [deliveryLocations, setDeliveryLocations] = useState([]);
+  const [selectedArea, setSelectedArea] = useState("");
 
   useEffect(() => {
     (async () => {
       setFetchingProfile(true);
       try {
         const res = await api.get("/seller/profile");
+        const locRes = await api.get("/location");
+        const locations = locRes.data || [];
+        setDeliveryLocations(locations);
+
         const data = res.data || {};
+
+        // If we have a saved area, set the dropdown
+        if (data.area) {
+          setSelectedArea(data.area);
+        }
 
         setProfile({
           shopName: data.shopName || "",
           ownerName: data.ownerName || "",
           address: data.address || "",
           lat: data.lat || null,
-          lng: data.lng || null
+          lng: data.lng || null,
+          pincode: data.pincode || "",
+          area: data.area || ""
         });
       } catch (err) {
         console.error("Failed to load seller profile", err);
@@ -102,7 +117,7 @@ export default function SellerProfile() {
   if (fetchingProfile) return <div className="p-6"><ProfileSkeleton /></div>;
 
   return (
-    <div className="dark:text-black dark:bg-gray-800 max-w-4xl mx-auto bg-white p-6 shadow rounded-lg space-y-4">
+    <div className="dark:text-black dark:bg-gray-800 max-w-7xl mx-auto bg-white p-8 lg:p-10 shadow-lg rounded-xl space-y-6">
       <h2 className="dark:text-white text-2xl font-bold">Seller Profile</h2>
 
       {/* Shop Name */}
@@ -129,6 +144,48 @@ export default function SellerProfile() {
         />
       </div>
 
+      <div>
+        <label className="dark:text-white text-sm font-semibold">Registered Mobile Number</label>
+        <input
+          value={user?.mobile || ""}
+          readOnly
+          className="w-full border p-2 rounded mt-1 bg-gray-100 dark:bg-gray-700 cursor-not-allowed dark:text-gray-300"
+        />
+        <p className="text-xs text-gray-500 mt-1">This number cannot be changed.</p>
+      </div>
+
+      {/* Location Dropdown */}
+      <div>
+        <label className="dark:text-white text-sm font-semibold">Select Location *</label>
+        <select
+          value={selectedArea}
+          onChange={(e) => {
+            const areaName = e.target.value;
+            setSelectedArea(areaName);
+            const selected = deliveryLocations.find((l) => l.area === areaName);
+            if (selected) {
+              setProfile((prev) => ({
+                ...prev,
+                city: selected.district,
+                state: selected.state,
+                pincode: selected.pincode,
+                area: selected.area, // Ensure area is set
+                address: prev.address ? `${prev.address} (${selected.area}, ${selected.pincode})` : `${selected.area}, ${selected.district}, ${selected.state} - ${selected.pincode}`
+              }));
+            }
+          }}
+          className="w-full dark:bg-gray-800 dark:text-white border p-2 rounded mt-1"
+        >
+          <option value="">-- Choose Location --</option>
+          {deliveryLocations.map((loc) => (
+            <option key={loc._id} value={loc.area}>
+              {loc.area} ({loc.pincode})
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Address */}
       {/* Address */}
       <div>
         <label className="dark:text-white text-sm font-semibold">Address (full address)</label>
@@ -141,7 +198,7 @@ export default function SellerProfile() {
         />
       </div>
 
-      {/* Map Preview + Detect Button */}
+      {/* Map Preview + Detect Button
       <div className="flex items-start gap-4">
         <div>
           <div className="dark:text-white text-sm font-semibold mb-2">Shop location preview</div>
@@ -154,7 +211,7 @@ export default function SellerProfile() {
             When buyers view your shop, they can open the location directly in Google Maps.
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Save Button */}
       <div className="flex gap-3">

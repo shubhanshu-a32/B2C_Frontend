@@ -22,6 +22,7 @@ export default function BuyerProfile() {
   const [loading, setLoading] = useState(false);
   const [fetchingProfile, setFetchingProfile] = useState(true);
   const [deliveryLocations, setDeliveryLocations] = useState([]);
+  const [selectedArea, setSelectedArea] = useState("");
 
   useEffect(() => {
     // Fetch locations dynamically
@@ -176,6 +177,16 @@ export default function BuyerProfile() {
       </div>
 
       <div>
+        <label className="text-sm font-semibold">WhatsApp Number</label>
+        <input
+          value={authUser.mobile || ""}
+          readOnly
+          className="w-full border p-2 rounded mt-1 bg-gray-100 dark:bg-gray-600 cursor-not-allowed dark:text-gray-100"
+        />
+        <p className="text-xs text-gray-500 mt-1">This number cannot be changed.</p>
+      </div>
+
+      <div>
         <label className="text-sm font-semibold">Full address (House No, Building, Street)</label>
         <textarea
           value={profile.address || ""}
@@ -190,10 +201,11 @@ export default function BuyerProfile() {
         <div className="sm:col-span-2">
           <label className="text-sm font-semibold">Select Delivery Area *</label>
           <select
-            value={profile.city} 
-            
+            value={selectedArea}
             onChange={(e) => {
-              const selected = deliveryLocations.find(l => l.area === e.target.value);
+              const areaName = e.target.value;
+              setSelectedArea(areaName);
+              const selected = deliveryLocations.find(l => l.area === areaName);
               if (selected) {
                 setProfile({
                   ...profile,
@@ -250,7 +262,7 @@ export default function BuyerProfile() {
         </button>
       </div>
 
-      {profile.lat && profile.lng && (
+      {/* {profile.lat && profile.lng && (
         <div className="w-48 h-32 rounded overflow-hidden border">
           <a
             href={`https://www.google.com/maps/search/?api=1&query=${profile.lat},${profile.lng}`}
@@ -268,7 +280,7 @@ export default function BuyerProfile() {
             />
           </a>
         </div>
-      )}
+      )} */}
 
       <div>
         <h3 className="font-semibold">Saved addresses</h3>

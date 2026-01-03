@@ -70,8 +70,8 @@ export default function SellerLayout() {
                 key={item.name}
                 to={item.href}
                 className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200 group ${isActive
-                    ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
-                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                   }`}
                 title={!isSidebarOpen ? item.name : ''}
               >
@@ -87,20 +87,7 @@ export default function SellerLayout() {
         </nav>
 
         {/* Sidebar Footer */}
-        <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-          <button
-            onClick={handleLogout}
-            className={`flex items-center gap-3 w-full px-3 py-3 rounded-lg text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors group ${!isSidebarOpen ? 'justify-center' : ''
-              }`}
-            title="Logout"
-          >
-            <LogOut className="w-5 h-5 flex-shrink-0" />
-            <span className={`font-medium whitespace-nowrap transition-all duration-200 ${isSidebarOpen ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden'
-              }`}>
-              Logout
-            </span>
-          </button>
-        </div>
+
       </aside>
 
       {/* Main Content */}
@@ -145,6 +132,14 @@ export default function SellerLayout() {
               aria-label="Toggle Theme"
             >
               {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+            </button>
+
+            <button
+              onClick={handleLogout}
+              className="p-2 rounded-lg bg-red-50 dark:bg-red-900/10 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors"
+              title="Logout"
+            >
+              <LogOut className="w-5 h-5" />
             </button>
           </div>
         </header>

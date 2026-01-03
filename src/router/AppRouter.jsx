@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "../components/ProtectedRoute";
 
 import MainLanding from "../pages/Landing";
@@ -19,6 +19,7 @@ import BuyerProfile from "../pages/buyer/BuyerProfile";
 import WishlistPage from "../pages/buyer/Wishlist";
 import CartPage from "../pages/buyer/Cart";
 import SellerShop from "../pages/buyer/SellerShop";
+import OrderSuccess from "../pages/buyer/OrderSuccess";
 
 // Seller Pages
 import SellerDashboard from "../pages/seller/SellerDashboard";
@@ -27,6 +28,10 @@ import AddProduct from "../pages/seller/AddProduct";
 import EditProduct from "../pages/seller/EditProduct";
 import SellerProfile from "../pages/seller/SellerProfile";
 import TotalOrders from "../pages/seller/TotalOrders";
+
+
+
+
 
 
 
@@ -41,7 +46,7 @@ export default function AppRouter() {
         <Route path="/verify-otp" element={<OTPVerify />} />
 
 
-        {/* Public Shop Routes (Visible to guests and logged-in users) */}
+
         <Route element={<PublicLayout />}>
           <Route path="/shop" element={<Shop />} />
           <Route path="/product/:id" element={<ProductDetails />} />
@@ -64,6 +69,7 @@ export default function AppRouter() {
           <Route path="profile" element={<BuyerProfile />} />
           <Route path="wishlist" element={<WishlistPage />} />
           <Route path="cart" element={<CartPage />} />
+          <Route path="order-success" element={<OrderSuccess />} />
         </Route>
 
         {/* Seller Routes */}
@@ -83,6 +89,8 @@ export default function AppRouter() {
           <Route path="profile" element={<SellerProfile />} />
           <Route path="dashboard/total-orders" element={<TotalOrders />} />
         </Route>
+
+
 
 
 
