@@ -25,7 +25,7 @@ const useCartStore = create(
           });
         }
         set({ items });
-        toast.success("Added to cart");
+        // toast.success("Added to cart");
       },
 
       removeFromCart: (productId) => {

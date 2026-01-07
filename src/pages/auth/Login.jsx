@@ -5,7 +5,7 @@ import api from "../../services/api";
 
 export default function Login() {
   const [params] = useSearchParams();
-  const initialRole = params.get("role"); 
+  const initialRole = params.get("role");
   const [role, setRole] = useState(initialRole || "");
   const [mobile, setMobile] = useState("");
 
@@ -94,7 +94,7 @@ export default function Login() {
         </div>
 
         {/* Login Form */}
-        <div className="space-y-6">
+        <form onSubmit={(e) => { e.preventDefault(); sendOtp(); }} className="space-y-6">
           <div className={`transition-all duration-500 ${role ? 'opacity-100 translate-y-0' : 'opacity-50 translate-y-2'}`}>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 ml-1">
               Mobile Number
@@ -123,7 +123,7 @@ export default function Login() {
           </div>
 
           <button
-            onClick={sendOtp}
+            type="submit"
             disabled={mobile.length !== 10 || !role}
             className={`w-full py-3.5 rounded-xl text-white font-bold text-lg shadow-lg transform transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none
                 ${isBuyer ? 'bg-gradient-to-r from-blue-600 to-indigo-700 hover:shadow-blue-500/30' :
@@ -132,12 +132,9 @@ export default function Login() {
           >
             {mobile.length === 10 ? "Send OTP Code" : "Enter Mobile Number"}
           </button>
-
-          <p className="text-center text-xs text-gray-400 mt-4">
-            By continuing, you agree to our Terms of Service & Privacy Policy
-          </p>
-
-        </div>
+        </form>    <p className="text-center text-xs text-gray-400 mt-4">
+          By continuing, you agree to our Terms of Service & Privacy Policy
+        </p>
 
       </div>
     </div>

@@ -104,10 +104,10 @@ export default function CartPage() {
       <div className="grid lg:grid-cols-3 gap-8">
 
         {/* Cart Items */}
-        <div className="lg:col-span-2 space-y-4">
+        <div className="lg:col-span-2 grid grid-cols-2 gap-3 sm:flex sm:flex-col sm:gap-4">
           {items.map((it) => (
-            <div key={it.productId} className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border dark:border-gray-700 flex flex-col sm:flex-row gap-4 transition hover:shadow-md">
-              <div className="w-full sm:w-28 h-48 sm:h-28 bg-gray-100 dark:bg-gray-700 rounded-lg shrink-0 overflow-hidden">
+            <div key={it.productId} className="bg-white dark:bg-gray-800 p-2 sm:p-4 rounded-xl shadow-sm border dark:border-gray-700 flex flex-col sm:flex-row gap-2 sm:gap-4 transition hover:shadow-md">
+              <div className="w-full h-32 sm:w-28 sm:h-28 bg-gray-100 dark:bg-gray-700 rounded-lg shrink-0 overflow-hidden">
                 {it.image ? (
                   <img src={it.image} alt={it.title} className="w-full h-full object-cover" />
                 ) : (
@@ -117,29 +117,29 @@ export default function CartPage() {
 
               <div className="flex-1 flex flex-col justify-between">
                 <div>
-                  <h3 className="font-semibold text-lg text-gray-800 dark:text-gray-100 line-clamp-2 md:line-clamp-1">{it.title}</h3>
-                  <p className="font-bold text-blue-600 mt-1">₹{it.price}</p>
+                  <h3 className="font-semibold text-sm sm:text-lg text-gray-800 dark:text-gray-100 line-clamp-2 md:line-clamp-1">{it.title}</h3>
+                  <p className="font-bold text-sm sm:text-base text-blue-600 mt-1">₹{it.price}</p>
                 </div>
 
-                <div className="flex items-center justify-between mt-3">
-                  <div className="flex items-center border dark:border-gray-600 rounded-lg overflow-hidden">
+                <div className="flex items-center justify-between mt-2 sm:mt-3">
+                  <div className="flex items-center border dark:border-gray-600 rounded-lg overflow-hidden h-7 sm:h-auto">
                     <button
                       onClick={() => updateQty(it.productId, Math.max(1, it.qty - 1))}
-                      className="px-3 py-1 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600"
+                      className="px-2 sm:px-3 py-1 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 text-xs sm:text-base"
                     >-</button>
                     <input
                       type="number"
                       min="1"
                       value={it.qty}
                       onChange={(e) => updateQty(it.productId, Number(e.target.value))}
-                      className="w-12 text-center border-none focus:ring-0 p-1 bg-white dark:bg-gray-800 dark:text-white text-sm"
+                      className="w-8 sm:w-12 text-center border-none focus:ring-0 p-1 bg-white dark:bg-gray-800 dark:text-white text-xs sm:text-sm"
                     />
                     <button
                       onClick={() => updateQty(it.productId, it.qty + 1)}
-                      className="px-3 py-1 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600"
+                      className="px-2 sm:px-3 py-1 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 text-xs sm:text-base"
                     >+</button>
                   </div>
-                  <button onClick={() => removeFromCart(it.productId)} className="text-sm text-red-500 hover:text-red-700 font-medium">
+                  <button onClick={() => removeFromCart(it.productId)} className="text-xs sm:text-sm text-red-500 hover:text-red-700 font-medium">
                     Remove
                   </button>
                 </div>

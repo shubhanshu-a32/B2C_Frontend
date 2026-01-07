@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import useAuthStore from "../store/authStore";
 import useThemeStore from "../store/themeStore";
@@ -16,6 +16,15 @@ export default function NavBar() {
   const cartItems = useCartStore((s) => s.items);
   const wishlistItems = useWishlistStore((s) => s.items);
   const [openCategories, setOpenCategories] = useState(false);
+  const [cartBlink, setCartBlink] = useState(false);
+
+  useEffect(() => {
+    if (cartItems.length > 0) {
+      setCartBlink(true);
+      const timer = setTimeout(() => setCartBlink(false), 1000); // 1s blink
+      return () => clearTimeout(timer);
+    }
+  }, [cartItems]);
 
   const navigate = useNavigate();
 
@@ -56,13 +65,13 @@ export default function NavBar() {
           {/* Buyer Navigation Links */}
           {user && user.role === "buyer" && (
             <div className="flex items-center gap-4 text-sm font-medium text-gray-700 dark:text-gray-200">
-              <Link to="/buyer/cart" className="hover:text-blue-600 relative p-1">
+              <Link to="/buyer/cart" className={`hover:text-blue-600 relative p-1 transition-colors duration-300 ${cartBlink ? 'text-green-600' : ''}`}>
                 <span className="sr-only">Cart</span>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={`w-6 h-6 ${cartBlink ? 'animate-pulse' : ''}`}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
                 </svg>
                 {cartItems.length > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                  <span className={`absolute -top-1 -right-1 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center transition-colors duration-300 ${cartBlink ? 'bg-green-600 scale-110' : 'bg-blue-600'}`}>
                     {cartItems.length}
                   </span>
                 )}
@@ -74,9 +83,9 @@ export default function NavBar() {
           <div className="flex items-center gap-3">
             {!user ? (
               <div className="relative group">
-                <button className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded transition flex items-center gap-2">
-                  Login
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                <button className="px-2 py-1.5 sm:px-4 bg-blue-600 hover:bg-blue-700 text-white rounded transition flex items-center gap-2">
+                  <span className="hidden sm:block">Login</span>
+                  <svg className="w-5 h-5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" /></svg>
                 </button>
 
                 {/* Dropdown Menu - invisible bridge using padding */}
@@ -101,14 +110,17 @@ export default function NavBar() {
             ) : (
               <>
                 {user.role === "seller" ? (
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2 sm:gap-4">
                     <Link to="/seller/dashboard" className="text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-blue-600">
-                      Dashboard
+                      <span className="hidden sm:block">Dashboard</span>
+                      <span className="block sm:hidden">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                      </span>
                     </Link>
                     <div className="relative group mr-2">
-                      <button className="px-3 py-1 flex items-center gap-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
-                        Profile
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                      <button className="px-2 py-1 sm:px-3 flex items-center gap-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+                        <span className="hidden sm:block">Profile</span>
+                        <svg className="w-6 h-6 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                       </button>
 
                       {/* Dropdown Menu - invisible bridge using padding */}
@@ -126,9 +138,9 @@ export default function NavBar() {
                   </div>
                 ) : (
                   <div className="relative group">
-                    <button className="px-3 py-1 flex items-center gap-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
-                      Profile
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                    <button className="px-2 py-1 sm:px-3 flex items-center gap-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+                      <span className="hidden sm:block">Profile</span>
+                      <svg className="w-6 h-6 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                     </button>
 
                     {/* Dropdown Menu - invisible bridge using padding */}

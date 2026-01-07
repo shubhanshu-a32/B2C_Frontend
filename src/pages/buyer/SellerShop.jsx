@@ -155,9 +155,11 @@ export default function SellerShop() {
             <p className="text-gray-500 font-medium">No products listed by this seller yet.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="flex gap-3 sm:gap-6 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory scroll-smooth">
             {products.map((product) => (
-              <ProductCard key={product._id} product={product} />
+              <div key={product._id} className="min-w-[calc(50%-6px)] w-[calc(50%-6px)] sm:min-w-[280px] sm:w-[280px] snap-start">
+                <ProductCard product={product} />
+              </div>
             ))}
           </div>
         )}

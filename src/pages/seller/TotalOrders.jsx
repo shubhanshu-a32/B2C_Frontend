@@ -13,7 +13,7 @@ export default function TotalOrders() {
     const fetchOrders = async () => {
         try {
             // Assuming listOrdersByUser handles seller logic
-            const res = await api.get("/orders?limit=100");
+            const res = await api.get("/orders/seller/me?limit=100");
             setOrders(res.data.data || []);
         } catch (err) {
             console.error("Failed to fetch orders", err);
@@ -48,13 +48,13 @@ export default function TotalOrders() {
                                 </div>
                                 <div>
                                     <div className="text-sm text-gray-500">Date</div>
-                                    <div>{new Date(order.createdAt).toLocaleDateString()}</div>
+                                    <div>{new Date(order.createdAt).toLocaleDateString('en-GB')}</div>
                                 </div>
                                 <div>
                                     <div className="text-sm text-gray-500">Status</div>
                                     <span className={`px-2 py-1 rounded text-xs font-bold ${order.orderStatus === 'DELIVERED' ? 'bg-green-100 text-green-700' :
-                                            order.orderStatus === 'CANCELLED' ? 'bg-red-100 text-red-700' :
-                                                'bg-yellow-100 text-yellow-700'
+                                        order.orderStatus === 'CANCELLED' ? 'bg-red-100 text-red-700' :
+                                            'bg-yellow-100 text-yellow-700'
                                         }`}>
                                         {order.orderStatus}
                                     </span>

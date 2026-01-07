@@ -28,7 +28,7 @@ export default function EditProduct() {
   if (!form) return <p>Loading...</p>;
 
   return (
-    <div className="dark:text-gray-500 max-w-xl bg-white p-6 rounded shadow">
+    <div className="dark:text-gray-500 max-w-2xl mx-auto bg-white p-4 sm:p-6 rounded shadow">
       <h2 className="text-2xl font-bold mb-6">Edit Product</h2>
 
       <div className="space-y-4">

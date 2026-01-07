@@ -20,7 +20,7 @@ export default function SellerLayout() {
   const { theme, toggleTheme } = useThemeStore();
   const location = useLocation();
   const navigate = useNavigate();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 1024);
 
   const navigation = [
     { name: 'Dashboard', href: '/seller/dashboard', icon: LayoutDashboard },
@@ -55,7 +55,7 @@ export default function SellerLayout() {
         {/* Toggle Button (Desktop) */}
         <button
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          className="absolute -right-3 top-20 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-full p-1 shadow-md hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors hidden lg:block"
+          className="absolute -right-3 top-20 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-full p-1 shadow-md hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors z-50"
         >
           <ChevronLeft className={`w-4 h-4 text-gray-600 dark:text-gray-300 transition-transform duration-300 ${!isSidebarOpen ? 'rotate-180' : ''
             }`} />
@@ -95,13 +95,7 @@ export default function SellerLayout() {
         {/* Top Header */}
         <header className="h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-6 shadow-sm z-20">
           <div className="flex items-center gap-4">
-            {/* Mobile Menu Button - Visible only on small screens */}
-            <button
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="lg:hidden p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-            >
-              <Menu className="w-6 h-6" />
-            </button>
+
 
             <h1 className="text-xl font-semibold text-gray-800 dark:text-white">
               {navigation.find(n => n.href === location.pathname)?.name || 'Dashboard'}

@@ -30,16 +30,18 @@ export default function Login() {
       <p className="text-gray-600 text-center mb-6">Enter your mobile number to continue</p>
 
 
-      <Input
-        label="Mobile Number"
-        placeholder="Enter mobile number"
-        value={mobile}
-        onChange={(e) => setMobile(e.target.value)}
-      />
+      <form onSubmit={(e) => { e.preventDefault(); sendOtp(); }}>
+        <Input
+          label="Mobile Number"
+          placeholder="Enter mobile number"
+          value={mobile}
+          onChange={(e) => setMobile(e.target.value)}
+        />
 
-      <Button className="w-full mt-4" onClick={sendOtp} disabled={loading}>
-        {loading ? "Sending OTP..." : "Send OTP"}
-      </Button>
+        <Button className="w-full mt-4" type="submit" disabled={loading}>
+          {loading ? "Sending OTP..." : "Send OTP"}
+        </Button>
+      </form>
     </div>
   );
 }

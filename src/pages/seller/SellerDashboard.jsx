@@ -67,7 +67,7 @@ export default function SellerDashboard() {
     return (
       <Wrapper
         to={to}
-        className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all duration-300"
+        className="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all duration-300"
       >
         <div className="flex items-center justify-between mb-4">
           <div className={`p-3 rounded-xl ${color} bg-opacity-10 dark:bg-opacity-20`}>
@@ -125,7 +125,7 @@ export default function SellerDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
         {/* Sales Trend */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 lg:col-span-2">
+        <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 lg:col-span-2">
           <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
             <TrendingUp size={20} className="text-blue-500" />
             Sales Performance
@@ -163,7 +163,7 @@ export default function SellerDashboard() {
         </div>
 
         {/* Top Products */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
           <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Top Selling Products</h3>
           <div className="h-80 w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -186,9 +186,9 @@ export default function SellerDashboard() {
         </div>
 
         {/* Category Distribution (New) */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
           <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Category Distribution</h3>
-          <div className="h-80 w-full">
+          <div className="h-96 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -207,7 +207,11 @@ export default function SellerDashboard() {
                   ))}
                 </Pie>
                 <Tooltip />
-                <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                <Legend
+                  verticalAlign="bottom"
+                  wrapperStyle={{ paddingTop: "20px" }}
+                  iconType="circle"
+                />
               </PieChart>
             </ResponsiveContainer>
           </div>

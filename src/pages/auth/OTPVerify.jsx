@@ -133,7 +133,7 @@ export default function OTPVerify() {
         </div>
 
 
-        <div className="space-y-6">
+        <form onSubmit={(e) => { e.preventDefault(); verifyOtp(); }} className="space-y-6">
           <div className="relative">
             <input
               value={otp}
@@ -149,6 +149,7 @@ export default function OTPVerify() {
           </div>
 
           <button
+            type="submit"
             onClick={verifyOtp}
             disabled={loading || otp.length < 4}
             className={`w-full py-3.5 rounded-xl text-white font-bold text-lg shadow-lg transform transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none
@@ -172,8 +173,7 @@ export default function OTPVerify() {
               Didn't receive code? Resend
             </button>
           </div>
-        </div>
-
+        </form>
       </div>
     </div>
   );

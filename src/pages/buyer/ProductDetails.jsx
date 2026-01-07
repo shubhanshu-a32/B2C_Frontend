@@ -102,7 +102,7 @@ export default function ProductDetails() {
       <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-12 gap-8">
 
         {/* LEFT COLUMN: Image Gallery (5 cols) */}
-        <div className="lg:col-span-5 flex flex-col-reverse lg:flex-row gap-4 h-fit sticky top-24">
+        <div className="lg:col-span-5 flex flex-col-reverse lg:flex-row gap-4 h-fit lg:sticky lg:top-24">
           {/* Thumbnails */}
           <div className="flex lg:flex-col gap-3 overflow-x-auto lg:overflow-y-auto lg:max-h-[500px] scrollbar-hide py-1 px-1">
             {product.images?.map((img, idx) => (

@@ -58,42 +58,39 @@ export default function SellerProfile() {
     })();
   }, []);
 
-  // Detect location & reverse-geocode
+  // Detect location
   const detectLocation = () => {
     if (!navigator.geolocation) {
       toast.error("Geolocation not supported by this browser.");
       return;
     }
 
+    const handleSuccess = (pos) => {
+      const { latitude, longitude } = pos.coords;
+      setProfile((existing) => ({
+        ...existing,
+        lat: latitude,
+        lng: longitude
+      }));
+      toast.success("Location coordinates detected");
+    };
+
+    const handleError = (err) => {
+      console.warn("High accuracy location failed, retrying with low accuracy...", err);
+      // Fallback: Try with low accuracy and longer timeout
+      navigator.geolocation.getCurrentPosition(
+        handleSuccess,
+        (finalErr) => {
+          toast.error("Unable to fetch location: " + finalErr.message);
+        },
+        { enableHighAccuracy: false, timeout: 20000 }
+      );
+    };
+
+    // First attempt: High Accuracy
     navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const { latitude, longitude } = pos.coords;
-
-        setProfile((existing) => ({
-          ...existing,
-          lat: latitude,
-          lng: longitude
-        }));
-
-        try {
-          const res = await api.get("/location/reverse", {
-            params: { lat: latitude, lng: longitude }
-          });
-
-          setProfile((existing) => ({
-            ...existing,
-            address: res.data.address
-          }));
-
-          toast.success("Location detected");
-        } catch (err) {
-          console.error("Reverse geocode error:", err);
-          toast.error("Failed to fetch formatted address");
-        }
-      },
-      (err) => {
-        toast.error("Unable to fetch location: " + err.message);
-      },
+      handleSuccess,
+      handleError,
       { enableHighAccuracy: true, timeout: 10000 }
     );
   };
@@ -117,7 +114,7 @@ export default function SellerProfile() {
   if (fetchingProfile) return <div className="p-6"><ProfileSkeleton /></div>;
 
   return (
-    <div className="dark:text-black dark:bg-gray-800 max-w-7xl mx-auto bg-white p-8 lg:p-10 shadow-lg rounded-xl space-y-6">
+    <div className="dark:text-black dark:bg-gray-800 max-w-7xl mx-auto bg-white p-4 sm:p-6 lg:p-8 shadow-lg rounded-xl space-y-6">
       <h2 className="dark:text-white text-2xl font-bold">Seller Profile</h2>
 
       {/* Shop Name */}
@@ -198,20 +195,24 @@ export default function SellerProfile() {
         />
       </div>
 
-      {/* Map Preview + Detect Button
-      <div className="flex items-start gap-4">
-        <div>
-          <div className="dark:text-white text-sm font-semibold mb-2">Shop location preview</div>
-          <MapPreview lat={profile.lat} lng={profile.lng} />
+      {/* Map Preview + Detect Button */}
+      <div className="space-y-4">
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+          <div>
+            <div className="dark:text-white text-sm font-semibold">Shop location preview</div>
+            <p className="dark:text-gray-400 text-xs text-gray-500 mt-1">
+              When buyers view your shop, they can open the location directly in Google Maps.
+            </p>
+          </div>
+          <Button onClick={detectLocation}>Detect my location</Button>
         </div>
 
-        <div className="flex dark:bg-gray-800 dark:text-white flex-col gap-2">
-          <Button onClick={detectLocation}>Detect my location</Button>
-          <div className="dark:text-white text-sm text-gray-500">
-            When buyers view your shop, they can open the location directly in Google Maps.
-          </div>
-        </div>
-      </div> */}
+        <MapPreview
+          lat={profile.lat}
+          lng={profile.lng}
+          className="w-full h-64 rounded-xl overflow-hidden shadow-sm border dark:border-gray-700"
+        />
+      </div>
 
       {/* Save Button */}
       <div className="flex gap-3">

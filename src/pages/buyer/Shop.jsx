@@ -10,7 +10,7 @@ import toast from "react-hot-toast";
 import useAuthStore from "../../store/authStore";
 import useCategoryStore from "../../store/categoryStore"; // Import store
 import { LayoutGrid } from "lucide-react";
-import { categoryIcons, DefaultCategoryIcon } from "../../constants/categoryIcons";
+import { categoryIcons, DefaultCategoryIcon, getSubCategoryIcon } from "../../constants/categoryIcons";
 
 // Copied CategoryRow from Landing.jsx for reuse
 function CategoryRow({ title, categoryId }) {
@@ -77,7 +77,7 @@ function CategoryRow({ title, categoryId }) {
         <>
           <div className="flex gap-6 overflow-x-auto pb-6 scrollbar-hide snap-x snap-mandatory scroll-smooth">
             {products.map((p) => (
-              <div key={p._id} className="min-w-[280px] w-[280px] snap-start">
+              <div key={p._id} className="min-w-[calc(50%-6px)] w-[calc(50%-6px)] sm:min-w-[280px] sm:w-[280px] snap-start">
                 <ProductCard product={p} />
               </div>
             ))}
@@ -225,24 +225,21 @@ export default function Shop() {
           Explore Categories
         </h2>
 
-        <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
-
-
-
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 pb-4">
           <button
             onClick={() => {
               setCategory("");
               setSubcategory("");
               setOpenCategory(null);
             }}
-            className={`flex-shrink-0 px-6 py-3 rounded-full border transition whitespace-nowrap font-medium flex items-center gap-2
+            className={`flex flex-col items-center justify-center gap-1 p-2 rounded-lg border transition h-full w-full
               ${!category
                 ? "bg-blue-600 text-white border-blue-600 shadow-md"
                 : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
               }`}
           >
-            <span className="text-lg">All</span>
-            <LayoutGrid size={20} />
+            <LayoutGrid className="w-5 h-5 sm:w-6 sm:h-6 mb-0.5" />
+            <span className="text-[10px] sm:text-xs font-medium text-center leading-none">All</span>
           </button>
           {categories.map((cat) => {
             const Icon = categoryIcons[cat.name.toLowerCase()] || categoryIcons[cat.slug?.toLowerCase()] || DefaultCategoryIcon;
@@ -250,14 +247,14 @@ export default function Shop() {
               <button
                 key={cat._id}
                 onClick={() => setOpenCategory(openCategory === cat._id ? null : cat._id)}
-                className={`flex-shrink-0 px-6 py-3 rounded-full border transition whitespace-nowrap font-medium flex items-center gap-2
+                className={`flex flex-col items-center justify-center gap-1 p-2 rounded-lg border transition h-full w-full
                   ${openCategory === cat._id
                     ? "bg-blue-600 text-white border-blue-600 shadow-md"
                     : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
                   }`}
               >
-                <span className="text-lg">{cat.name}</span>
-                <Icon size={20} />
+                <Icon className="w-5 h-5 sm:w-6 sm:h-6 mb-0.5" />
+                <span className="text-[10px] sm:text-xs font-medium text-center leading-tight px-0.5 truncate w-full">{cat.name}</span>
               </button>
             );
           })}
@@ -270,15 +267,25 @@ export default function Shop() {
               Subcategories
             </h3>
             <div className="flex flex-wrap gap-3">
-              {categories.find(c => c._id === openCategory)?.subCategories?.map((sub) => (
-                <button
-                  key={sub._id}
-                  onClick={() => handleSubCategoryClick(categories.find(c => c._id === openCategory), sub)}
-                  className="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-blue-50 dark:hover:bg-blue-900/30 text-sm rounded-lg transition"
-                >
-                  {sub.name}
-                </button>
-              ))}
+              {categories.find(c => c._id === openCategory)?.subCategories?.map((sub) => {
+                const SubIcon = getSubCategoryIcon(sub.name);
+                return (
+                  <button
+                    key={sub._id}
+                    onClick={() => {
+                      setSubcategory(sub.slug);
+                      setCategory(categories.find(c => c._id === openCategory).slug);
+                    }}
+                    className={`inline-flex items-center gap-2 px-4 py-2 text-sm rounded-lg transition border
+                        ${subcategory === sub.slug
+                        ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                        : "bg-gray-100 dark:bg-gray-700 hover:bg-blue-50 dark:hover:bg-blue-900/30 text-gray-700 dark:text-gray-200 border-transparent hover:border-blue-200 dark:hover:border-blue-800"}`}
+                  >
+                    <SubIcon size={16} className={subcategory === sub.slug ? "text-white" : "text-gray-500 dark:text-gray-400"} />
+                    {sub.name}
+                  </button>
+                );
+              })}
               {(!categories.find(c => c._id === openCategory)?.subCategories?.length) && (
                 <span className="text-gray-400 text-sm">No subcategories</span>
               )}
@@ -356,12 +363,18 @@ export default function Shop() {
       )}
 
       {/* PRODUCTS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <div className="flex gap-3 sm:gap-6 overflow-x-auto pb-6 scrollbar-hide snap-x snap-mandatory scroll-smooth">
         {loadingProducts ? (
-          [...Array(8)].map((_, i) => <ProductSkeleton key={i} />)
+          [...Array(8)].map((_, i) => (
+            <div key={i} className="min-w-[calc(50%-6px)] w-[calc(50%-6px)] sm:min-w-[280px] sm:w-[280px] snap-start">
+              <ProductSkeleton />
+            </div>
+          ))
         ) : (
           products.map((p) => (
-            <ProductCard key={p._id} product={p} />
+            <div key={p._id} className="min-w-[calc(50%-6px)] w-[calc(50%-6px)] sm:min-w-[280px] sm:w-[280px] snap-start">
+              <ProductCard product={p} />
+            </div>
           ))
         )}
       </div>

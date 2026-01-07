@@ -19,7 +19,7 @@ export default function ManageProducts() {
   const load = async () => {
     setLoading(true);
     try {
-      const { data } = await api.get("/products", {
+      const { data } = await api.get("/products/seller/me", {
         params: { page, limit: 10 },
       });
       setProducts(data.data);
