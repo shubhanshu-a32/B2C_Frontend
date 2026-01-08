@@ -14,7 +14,9 @@ export default function AddProduct() {
     description: "",
     price: "",
     stock: "",
+    stock: "",
     variant: "",
+    commission: "",
     category: "",
     subcategory: "",
   });
@@ -84,7 +86,9 @@ export default function AddProduct() {
       await api.post("/products", {
         ...form,
         price: Number(form.price),
+        price: Number(form.price),
         stock: Number(form.stock),
+        commission: Number(form.commission),
         images,
       });
 
@@ -283,6 +287,20 @@ export default function AddProduct() {
                   name="variant"
                   placeholder="e.g. XL, Red, 128GB"
                   value={form.variant}
+                  onChange={handleChange}
+                  className={inputClass}
+                />
+              </div>
+
+              <div>
+                <label className={labelClass}>Commission (%)</label>
+                <input
+                  name="commission"
+                  type="number"
+                  placeholder="0"
+                  min="0"
+                  max="100"
+                  value={form.commission}
                   onChange={handleChange}
                   className={inputClass}
                 />

@@ -170,7 +170,7 @@ export default function BuyerOrders() {
                     </button>
 
                     <div className="font-semibold text-gray-900 dark:text-gray-100 w-20 text-right">
-                      ₹{order.totalAmount}
+                      ₹{item.price}
                     </div>
                   </div>
                 ))}
