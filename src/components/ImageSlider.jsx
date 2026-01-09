@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import fashion from "../assets/hero_section/fashion.jpeg"
+import fashion from "../assets/hero_section/fashion_banner.png";
 import electronics from "../assets/hero_section/electronics.jpeg";
 import electricals from "../assets/hero_section/electricals.jpeg";
 import home_kitchen from "../assets/hero_section/home_kitchen.jpeg";
-import groceries from "../assets/hero_section/groceries1.jpeg";
+import groceries from "../assets/hero_section/food_grocery_banner.png";
 import daily_needs from "../assets/hero_section/daily_needs.jpeg";
 
 const SLIDES = [
@@ -33,7 +33,7 @@ export default function ImageSlider() {
           key={i}
           src={img}
           alt={`Slide ${i + 1}`}
-          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${i === index ? "opacity-100" : "opacity-0"
+          className={`absolute inset-0 w-full h-full object-fill transition-opacity duration-1000 ${i === index ? "opacity-100" : "opacity-0"
             }`}
         />
       ))}

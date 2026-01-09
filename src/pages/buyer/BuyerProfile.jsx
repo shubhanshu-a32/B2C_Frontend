@@ -59,34 +59,7 @@ export default function BuyerProfile() {
     })();
   }, []);
 
-  const detectLocation = () => {
-    if (!navigator.geolocation) {
-      toast.error("Geolocation not supported");
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const { latitude, longitude } = pos.coords;
-        setProfile((p) => ({ ...p, lat: latitude, lng: longitude }));
-        try {
-          const r = await api.get("/location/reverse", { params: { lat: latitude, lng: longitude } });
-          if (r.data?.address) {
-            setProfile((p) => ({ ...p, address: r.data.address }));
-            toast.success("Location detected");
-          } else {
-            toast.success("Coordinates detected — edit address if needed");
-          }
-        } catch (err) {
-          console.error("Reverse geocode:", err);
-          toast.error("Reverse geocode failed");
-        }
-      },
-      (err) => {
-        toast.error("Unable to get location: " + err.message);
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
-  };
+
 
   const saveProfile = async () => {
     if (!profile.fullName?.trim()) {
@@ -137,24 +110,7 @@ export default function BuyerProfile() {
     }
   };
 
-  const addAddress = async (addr) => {
-    if (!addr?.trim()) {
-      toast.error("Address cannot be empty");
-      return;
-    }
-    setLoading(true);
-    try {
-      const res = await api.put("/buyer/profile", { newAddress: addr });
-      const data = res.data || {};
-      setProfile((p) => ({ ...p, addresses: data.addresses || [addr, ...p.addresses] }));
-      toast.success("Address saved");
-    } catch (err) {
-      console.error("saveAddress error:", err);
-      toast.error("Failed to save address");
-    } finally {
-      setLoading(false);
-    }
-  };
+
 
   if (!authUser || fetchingProfile) return <div className="p-6"><ProfileSkeleton /></div>;
 
@@ -255,12 +211,7 @@ export default function BuyerProfile() {
 
 
 
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-        <button onClick={detectLocation} className="px-4 py-2 bg-blue-600 text-white rounded text-center">Detect my location</button>
-        <button onClick={saveProfile} disabled={loading} className="px-4 py-2 bg-green-600 text-white rounded text-center">
-          {loading ? "Saving..." : "Save Profile"}
-        </button>
-      </div>
+
 
       {/* {profile.lat && profile.lng && (
         <div className="w-48 h-32 rounded overflow-hidden border">
@@ -297,20 +248,15 @@ export default function BuyerProfile() {
         </ul>
       </div>
 
-      <div>
-        <label className="text-sm font-semibold">Add quick address</label>
-        <QuickAddressInput onSave={addAddress} />
+
+
+      <div className="flex justify-end mt-6 pt-6 border-t dark:border-gray-700">
+        <button onClick={saveProfile} disabled={loading} className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition w-full sm:w-auto font-semibold shadow-md">
+          {loading ? "Saving..." : "Save Profile"}
+        </button>
       </div>
     </div>
   );
 }
 
-function QuickAddressInput({ onSave }) {
-  const [val, setVal] = useState("");
-  return (
-    <div className="flex gap-2 mt-2">
-      <input value={val} onChange={(e) => setVal(e.target.value)} className="flex-1 border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" />
-      <button onClick={() => { onSave(val); setVal(""); }} className="px-3 py-2 bg-blue-600 text-white rounded">Save</button>
-    </div>
-  );
-}
+

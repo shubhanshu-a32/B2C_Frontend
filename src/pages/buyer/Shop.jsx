@@ -159,12 +159,18 @@ export default function Shop() {
     setPage(1);
   }, [category, subcategory, filters, geoLocation]);
 
-  // Fetch Sellers
+  // Fetch Sellers (Filtered by Location)
   useEffect(() => {
-    api.get("/seller/profile/list")
+    const sellerParams = {};
+    if (geoLocation) {
+      sellerParams.pincode = geoLocation.pincode;
+      sellerParams.area = geoLocation.area;
+    }
+
+    api.get("/seller/profile/list", { params: sellerParams })
       .then((res) => setSellers(res.data))
       .catch((err) => console.error("Failed to load sellers", err));
-  }, []);
+  }, [geoLocation]);
 
   useEffect(() => {
     loadProducts();

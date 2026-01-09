@@ -142,15 +142,18 @@ export default function MainLanding() {
     fetchCategories();
   }, [fetchCategories]);
 
-  // Fetch Sellers
+  // Fetch Sellers (Filtered by Location)
   useEffect(() => {
-    // Ideally sellers could also be filtered by location, but let's stick to products first as requested.
-    // Or maybe we should filter sellers too? The API for sellers likely needs update if we want that.
-    // For now, let's leave seller list global or maybe basic.
-    api.get("/seller/profile/list")
+    const sellerParams = {};
+    if (location) {
+      sellerParams.pincode = location.pincode;
+      sellerParams.area = location.area;
+    }
+
+    api.get("/seller/profile/list", { params: sellerParams })
       .then((res) => setSellers(res.data))
       .catch((err) => console.error("Failed to load sellers", err));
-  }, []);
+  }, [location]);
 
   // Fetch Featured Products for Slider
   // Reset page when filters change
