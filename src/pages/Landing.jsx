@@ -115,7 +115,23 @@ export default function MainLanding() {
   const [openCategory, setOpenCategory] = useState(null);
   const [products, setProducts] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
+  /* Filters State */
+  const [category, setCategory] = useState("");
+  const [subcategory, setSubcategory] = useState("");
+  const [filters, setFilters] = useState({
+    q: "",
+    maxPrice: "",
+    inStock: false,
+  });
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const selectedCategory = categories.find(c => c._id === category || c.slug === category);
+
+  // Check if any filters are active
+  const isBrowsingAll = !category && !subcategory && !filters.q && !filters.maxPrice && !filters.inStock;
+
+  /* Sellers State */
   const [sellers, setSellers] = useState([]);
+
   /* Pagination State */
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -137,13 +153,32 @@ export default function MainLanding() {
   }, []);
 
   // Fetch Featured Products for Slider
+  // Reset page when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [category, subcategory, filters, location]);
+
+  // Fetch Featured Products for Slider
   useEffect(() => {
     setLoadingProducts(true);
-    const params = { page, limit };
+
+    const params = {
+      page,
+      limit
+    };
+
+    if (filters.q) params.q = filters.q;
+    if (category) params.category = category;
+    if (subcategory) params.subcategory = subcategory;
+    if (filters.maxPrice) params.maxPrice = filters.maxPrice;
+    if (filters.inStock) params.inStock = true;
+
     if (location) {
       params.pincode = location.pincode;
       params.area = location.area;
     }
+
+    console.log("Fetching landing products with params:", params);
 
     api.get("/products", {
       params
@@ -156,7 +191,7 @@ export default function MainLanding() {
         console.error("Failed to load featured products", err);
       })
       .finally(() => setLoadingProducts(false));
-  }, [page, limit, location]);
+  }, [page, limit, location, category, subcategory, filters]);
 
   const openSubCategory = (cat, sub) => {
     navigate("/shop", {
@@ -234,6 +269,90 @@ export default function MainLanding() {
           )}
         </section>
 
+
+
+        {/* FILTER TOGGLE */}
+        <button
+          onClick={() => setFiltersOpen((o) => !o)}
+          className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-gray-800 rounded shadow text-sm border border-transparent dark:border-gray-700 w-fit mb-4"
+          aria-expanded={filtersOpen}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+            <path d="M3 5.25A.75.75 0 0 1 3.75 4.5h16.5a.75.75 0 0 1 .53 1.28L15 11.56v6.69a.75.75 0 0 1-1.16.62l-3-2.1a.75.75 0 0 1-.32-.62v-4.59L3.22 5.78A.75.75 0 0 1 3 5.25Z" />
+          </svg>
+          <span className="font-semibold">Filters</span>
+          <span className="text-xs text-gray-500 dark:text-gray-300">
+            {filtersOpen ? "Hide" : "Show"}
+          </span>
+        </button>
+
+        {/* FILTERS (collapsed by default) */}
+        {filtersOpen && (
+          <div className="bg-white dark:bg-gray-800 p-4 rounded shadow flex flex-wrap gap-4 items-center border border-transparent dark:border-gray-700 mb-8">
+            <select
+              value={category}
+              onChange={(e) => {
+                setCategory(e.target.value);
+                setSubcategory("");
+              }}
+              className="input"
+            >
+              <option value="">All Categories</option>
+              {categories.map((c) => (
+                <option key={c._id} value={c._id}>{c.name}</option>
+              ))}
+            </select>
+
+            <select
+              value={subcategory}
+              onChange={(e) => setSubcategory(e.target.value)}
+              className="input"
+              disabled={!selectedCategory}
+            >
+              <option value="">All Sub-Categories</option>
+              {selectedCategory?.subCategories?.map((s) => (
+                <option key={s._id} value={s._id}>{s.name}</option>
+              ))}
+            </select>
+
+            <input
+              type="number"
+              min="0"
+              value={filters.maxPrice}
+              onChange={(e) =>
+                setFilters((f) => ({ ...f, maxPrice: e.target.value }))
+              }
+              placeholder="Max Price"
+              className="input w-32"
+            />
+
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={filters.inStock}
+                onChange={(e) =>
+                  setFilters((f) => ({ ...f, inStock: e.target.checked }))
+                }
+              />
+              In stock only
+            </label>
+          </div>
+        )}
+
+        {/* POPULAR RETAILERS */}
+        <section>
+          <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Popular Retailers</h2>
+          {sellers.length > 0 ? (
+            <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide">
+              {sellers.map((s) => (
+                <SellerCard key={s._id} seller={s} requireLogin={true} />
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500">No popular retailers found.</p>
+          )}
+        </section>
+
         {/* FEATURED PRODUCTS - SLIDEABLE */}
         <section>
           <div className="flex items-center justify-between mb-6">
@@ -281,29 +400,18 @@ export default function MainLanding() {
         </section>
 
         {/* DYNAMIC DEALS SECTIONS */}
-        <div className="space-y-12">
-          {categories.map((cat) => (
-            <CategoryRow
-              key={cat._id}
-              title={`Deals in ${cat.name}`}
-              categoryId={cat.slug}
-            />
-          ))}
-        </div>
+        {isBrowsingAll && (
+          <div className="space-y-12">
+            {categories.map((cat) => (
+              <CategoryRow
+                key={cat._id}
+                title={`Deals in ${cat.name}`}
+                categoryId={cat.slug}
+              />
+            ))}
+          </div>
+        )}
 
-        {/* POPULAR RETAILERS */}
-        <section>
-          <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Popular Retailers</h2>
-          {sellers.length > 0 ? (
-            <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide">
-              {sellers.map((s) => (
-                <SellerCard key={s._id} seller={s} requireLogin={true} />
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-500">No popular retailers found.</p>
-          )}
-        </section>
 
       </main>
       <Footer />

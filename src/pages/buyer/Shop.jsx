@@ -294,6 +294,8 @@ export default function Shop() {
         )}
       </section>
 
+
+
       {/* FILTER TOGGLE */}
       <button
         onClick={() => setFiltersOpen((o) => !o)}
@@ -362,6 +364,19 @@ export default function Shop() {
         </div>
       )}
 
+      {/* POPULAR RETAILERS (Moved from Bottom) */}
+      {sellers.length > 0 && (
+        <section className="mb-8">
+          <h2 className="text-xl font-bold mb-4">Popular Retailers</h2>
+          <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide">
+            {sellers.map((s) => (
+              <SellerCard key={s._id} seller={s} requireLogin={false} />
+            ))}
+          </div>
+        </section>
+      )}
+
+
       {/* PRODUCTS */}
       <div className="flex gap-3 sm:gap-6 overflow-x-auto pb-6 scrollbar-hide snap-x snap-mandatory scroll-smooth">
         {loadingProducts ? (
@@ -414,19 +429,6 @@ export default function Shop() {
           ))}
         </div>
       )}
-
-      {/* POPULAR RETAILERS (Bottom) */}
-      {sellers.length > 0 && (
-        <section className="mb-8">
-          <h2 className="text-xl font-bold mb-4">Popular Retailers</h2>
-          <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide">
-            {sellers.map((s) => (
-              <SellerCard key={s._id} seller={s} requireLogin={false} />
-            ))}
-          </div>
-        </section>
-      )}
-
 
 
     </div>
