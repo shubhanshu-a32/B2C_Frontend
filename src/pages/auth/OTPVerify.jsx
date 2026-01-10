@@ -18,7 +18,7 @@ export default function OTPVerify() {
 
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
-  const receivedOtp = location.state?.otp;
+  const [displayOtp, setDisplayOtp] = useState(location.state?.otp);
 
   useEffect(() => {
     if (!mobile || !role) {
@@ -120,21 +120,12 @@ export default function OTPVerify() {
       const res = await api.post("/auth/send-otp", { mobile, role });
       const newOtp = res.data?.otp;
 
-      // Update the displayed OTP for dev convenience
       if (newOtp) {
-        // We can't update location.state directly without navigation, but we can update a local state variable
-        // However, 'receivedOtp' is derived const. Let's make it state-based or just show in toast.
-        // Actually, let's update a local state 'displayOtp' initialized from location.state
+        setDisplayOtp(newOtp);
       }
 
       const otpMsg = newOtp ? ` New OTP: ${newOtp}` : "";
       toast.success((res.data?.message || "OTP Resent!") + otpMsg);
-
-      // Update local display if we have a state for it, or just rely on toast
-      // Let's rely on Toast as user asked for "otp must be displayed... above input box" originally 
-      // but for resend, showing in toast is also helpful. 
-      // User asked "resend otp button... resend it". 
-      // *Self-correction*: If I want to update the yellow box, I need state.
     } catch (err) {
       toast.error(err?.response?.data?.message || "Failed to resend OTP");
     } finally {
@@ -178,10 +169,10 @@ export default function OTPVerify() {
 
         <form onSubmit={(e) => { e.preventDefault(); verifyOtp(); }} className="space-y-6">
           <div className="relative">
-            {receivedOtp && (
+            {displayOtp && (
               <div className="mb-2 text-center">
                 <span className="bg-yellow-100 text-yellow-800 text-sm font-medium px-2.5 py-0.5 rounded dark:bg-yellow-900 dark:text-yellow-300">
-                  Your OTP Code: <span className="font-bold tracking-widest">{receivedOtp}</span>
+                  Your OTP Code: <span className="font-bold tracking-widest">{displayOtp}</span>
                 </span>
               </div>
             )}
