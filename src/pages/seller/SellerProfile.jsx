@@ -16,7 +16,14 @@ export default function SellerProfile() {
     lat: null,
     lng: null,
     pincode: "",
-    area: ""
+    area: "",
+    gstNumber: "",
+    bankDetails: {
+      accountName: "",
+      accountNumber: "",
+      bankName: "",
+      ifscCode: ""
+    }
   });
 
   const [loading, setLoading] = useState(false);
@@ -47,7 +54,14 @@ export default function SellerProfile() {
           lat: data.lat || null,
           lng: data.lng || null,
           pincode: data.pincode || "",
-          area: data.area || ""
+          area: data.area || "",
+          gstNumber: data.gstNumber || "",
+          bankDetails: {
+            accountName: data.bankDetails?.accountName || "",
+            accountNumber: data.bankDetails?.accountNumber || "",
+            bankName: data.bankDetails?.bankName || "",
+            ifscCode: data.bankDetails?.ifscCode || ""
+          }
         });
       } catch (err) {
         console.error("Failed to load seller profile", err);
@@ -59,18 +73,31 @@ export default function SellerProfile() {
   }, []);
 
   // Detect location
+  const [lastDetectTime, setLastDetectTime] = useState(0);
+
   const detectLocation = () => {
     if (!navigator.geolocation) {
       toast.error("Geolocation not supported by this browser.");
       return;
     }
 
+    const now = Date.now();
+    if (now - lastDetectTime < 10000) {
+      const remaining = Math.ceil((10000 - (now - lastDetectTime)) / 1000);
+      toast.error(`Please wait ${remaining}s before detecting again.`);
+      return;
+    }
+
+    setLastDetectTime(now);
+
     const handleSuccess = (pos) => {
       const { latitude, longitude } = pos.coords;
       setProfile((existing) => ({
         ...existing,
         lat: latitude,
-        lng: longitude
+        lng: longitude,
+        // Reset address if you want to force reverse geocoding or keep it? 
+        // User didn't ask to clear address, but fresh coords are key.
       }));
       toast.success("Location coordinates detected");
     };
@@ -83,15 +110,15 @@ export default function SellerProfile() {
         (finalErr) => {
           toast.error("Unable to fetch location: " + finalErr.message);
         },
-        { enableHighAccuracy: false, timeout: 20000 }
+        { enableHighAccuracy: false, timeout: 20000, maximumAge: 0 }
       );
     };
 
-    // First attempt: High Accuracy
+    // First attempt: High Accuracy, Fresh (maximumAge: 0)
     navigator.geolocation.getCurrentPosition(
       handleSuccess,
       handleError,
-      { enableHighAccuracy: true, timeout: 10000 }
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
   };
 
@@ -100,8 +127,21 @@ export default function SellerProfile() {
     setLoading(true);
     try {
       const res = await api.put("/seller/profile", profile);
-      setProfile(res.data);
-      useAuthStore.getState().setUser(res.data);
+      const data = res.data || {};
+
+      // Merge response while ensuring structure exists
+      setProfile(prev => ({
+        ...prev,
+        ...data,
+        bankDetails: {
+          accountName: data.bankDetails?.accountName || prev.bankDetails?.accountName || "",
+          accountNumber: data.bankDetails?.accountNumber || prev.bankDetails?.accountNumber || "",
+          bankName: data.bankDetails?.bankName || prev.bankDetails?.bankName || "",
+          ifscCode: data.bankDetails?.ifscCode || prev.bankDetails?.ifscCode || ""
+        }
+      }));
+
+      useAuthStore.getState().setUser(data);
       toast.success("Profile updated");
     } catch (err) {
       console.error("Save profile error:", err);
@@ -193,6 +233,75 @@ export default function SellerProfile() {
           }
           className="w-full dark:bg-gray-800 dark:text-white border p-2 rounded mt-1"
         />
+      </div>
+
+      {/* Business & Banking Section */}
+      <div className="border-t dark:border-gray-700 pt-6">
+        <h3 className="text-lg font-bold dark:text-gray-200 mb-4">Business & Banking Details</h3>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* GSTIN */}
+          <div>
+            <label className="dark:text-white text-sm font-semibold">GSTIN</label>
+            <input
+              value={profile.gstNumber}
+              onChange={(e) =>
+                setProfile({ ...profile, gstNumber: e.target.value.toUpperCase() })
+              }
+              placeholder="e.g. 29ABCDE1234F1Z5"
+              className="w-full dark:bg-gray-800 dark:text-white border p-2 rounded mt-1 uppercase"
+            />
+          </div>
+
+          {/* Bank Account Name */}
+          <div>
+            <label className="dark:text-white text-sm font-semibold">Account Holder Name</label>
+            <input
+              value={profile.bankDetails?.accountName || ""}
+              onChange={(e) =>
+                setProfile({ ...profile, bankDetails: { ...profile.bankDetails, accountName: e.target.value } })
+              }
+              className="w-full dark:bg-gray-800 dark:text-white border p-2 rounded mt-1"
+            />
+          </div>
+
+          {/* Account Number */}
+          <div>
+            <label className="dark:text-white text-sm font-semibold">Account Number</label>
+            <input
+              value={profile.bankDetails?.accountNumber || ""}
+              onChange={(e) =>
+                setProfile({ ...profile, bankDetails: { ...profile.bankDetails, accountNumber: e.target.value } })
+              }
+              className="w-full dark:bg-gray-800 dark:text-white border p-2 rounded mt-1"
+            />
+          </div>
+
+          {/* Bank Name */}
+          <div>
+            <label className="dark:text-white text-sm font-semibold">Bank Name</label>
+            <input
+              value={profile.bankDetails?.bankName || ""}
+              onChange={(e) =>
+                setProfile({ ...profile, bankDetails: { ...profile.bankDetails, bankName: e.target.value } })
+              }
+              className="w-full dark:bg-gray-800 dark:text-white border p-2 rounded mt-1"
+            />
+          </div>
+
+          {/* IFSC Code */}
+          <div>
+            <label className="dark:text-white text-sm font-semibold">IFSC Code</label>
+            <input
+              value={profile.bankDetails?.ifscCode || ""}
+              onChange={(e) =>
+                setProfile({ ...profile, bankDetails: { ...profile.bankDetails, ifscCode: e.target.value.toUpperCase() } })
+              }
+              placeholder="e.g. SBIN0001234"
+              className="w-full dark:bg-gray-800 dark:text-white border p-2 rounded mt-1 uppercase"
+            />
+          </div>
+        </div>
       </div>
 
       {/* Map Preview + Detect Button */}

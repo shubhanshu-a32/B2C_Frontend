@@ -19,6 +19,7 @@ export default function ProductDetails() {
   const [activeImage, setActiveImage] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [isZoomed, setIsZoomed] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   // Store hooks
   const addToCart = useCartStore((s) => s.addToCart);
@@ -134,7 +135,7 @@ export default function ProductDetails() {
 
           {/* Main Image Stage */}
           <div
-            className="flex-1 bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 flex items-center justify-center relative overflow-hidden group min-h-[400px] lg:min-h-[500px]"
+            className="flex-1 bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 flex items-center justify-center relative overflow-hidden group min-h-[400px] lg:min-h-[500px] cursor-zoom-in"
             onMouseMove={(e) => {
               if (window.innerWidth >= 1024) { // Only zoom on desktop
                 const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
@@ -146,11 +147,11 @@ export default function ProductDetails() {
               }
             }}
             onMouseLeave={() => setIsZoomed(false)}
-            style={{ cursor: "crosshair" }}
+            onClick={() => setLightboxOpen(true)}
           >
             {/* Wishlist Button Overlay */}
             <button
-              onClick={handleWishlist}
+              onClick={(e) => { e.stopPropagation(); handleWishlist(); }}
               className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white dark:bg-gray-700 shadow-md hover:scale-110 transition text-gray-400 hover:text-red-500"
             >
               <Heart size={22} fill={isInWishlist ? "#ef4444" : "none"} className={isInWishlist ? "text-red-500" : ""} />
@@ -187,7 +188,7 @@ export default function ProductDetails() {
                 src={activeImage}
                 alt={product.title}
                 className={`max-w-full max-h-full object-contain transition-transform duration-200 ease-out origin-center
-                    ${isZoomed ? "scale-150" : "scale-100"}`}
+                    ${isZoomed ? "scale-[2]" : "scale-100"}`}
                 style={isZoomed ? { transformOrigin: "var(--zoom-x) var(--zoom-y)" } : {}}
               />
             ) : (
@@ -195,6 +196,27 @@ export default function ProductDetails() {
             )}
           </div>
         </div>
+
+        {/* LIGHTBOX OVERLAY */}
+        {lightboxOpen && (
+          <div
+            className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+            onClick={() => setLightboxOpen(false)}
+          >
+            <button
+              className="absolute top-4 right-4 text-white p-2 hover:bg-white/10 rounded-full"
+              onClick={() => setLightboxOpen(false)}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            <img
+              src={activeImage}
+              alt="Full view"
+              className="max-w-full max-h-full object-contain shadow-2xl"
+              onClick={(e) => e.stopPropagation()} // Prevent closing when clicking image
+            />
+          </div>
+        )}
 
         {/* MIDDLE COLUMN: Product Info (4 cols) */}
         <div className="lg:col-span-4 space-y-6">

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import useAuthStore from "../store/authStore";
 import useThemeStore from "../store/themeStore";
@@ -17,8 +17,15 @@ export default function NavBar() {
   const wishlistItems = useWishlistStore((s) => s.items);
   const [openCategories, setOpenCategories] = useState(false);
   const [cartBlink, setCartBlink] = useState(false);
+  const isFirstRender = useRef(true);
 
   useEffect(() => {
+    // Skip blink on initial load (refresh), only blink on updates
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
     if (cartItems.length > 0) {
       setCartBlink(true);
       const timer = setTimeout(() => setCartBlink(false), 1000); // 1s blink

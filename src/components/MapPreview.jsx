@@ -1,8 +1,18 @@
-export default function MapPreview({ lat, lng, className = "w-72 h-40 rounded overflow-hidden", zoom = 15 }) {
-  if (!lat || !lng) return <div className={`${className} bg-gray-100 flex items-center justify-center text-sm text-gray-500`}>No location</div>;
+export default function MapPreview({ lat, lng, address, className = "w-72 h-40 rounded overflow-hidden", zoom = 15 }) {
+  if ((!lat || !lng) && !address) return <div className={`${className} bg-gray-100 flex items-center justify-center text-sm text-gray-500`}>No location</div>;
 
-  const embedSrc = `https://www.google.com/maps?q=${lat},${lng}&z=${zoom}&output=embed`;
-  const openUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+  let embedSrc;
+  let openUrl;
+
+  if (lat && lng) {
+    embedSrc = `https://maps.google.com/maps?q=${lat},${lng}&t=&z=${zoom}&ie=UTF8&iwloc=&output=embed`;
+    openUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+  } else {
+    // Fallback to address
+    const safeAddress = encodeURIComponent(address);
+    embedSrc = `https://maps.google.com/maps?q=${safeAddress}&t=&z=${zoom}&ie=UTF8&iwloc=&output=embed`;
+    openUrl = `https://www.google.com/maps/search/?api=1&query=${safeAddress}`;
+  }
 
   return (
     <div className={className}>

@@ -225,7 +225,8 @@ export default function AddProduct() {
           </div>
 
           <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Product Images</h3>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Product Images</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Maximum image size: 2MB</p>
 
             <div className="space-y-6">
               {/* Main Image Section */}
@@ -455,7 +456,7 @@ export default function AddProduct() {
           </div>
 
         </div>
-      </form>
-    </div>
+      </form >
+    </div >
   );
 }

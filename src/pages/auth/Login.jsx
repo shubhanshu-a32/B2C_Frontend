@@ -29,9 +29,11 @@ export default function Login() {
 
     try {
       const res = await api.post("/auth/send-otp", { mobile, role });
-      toast.success(res.data?.message || "OTP sent!");
 
-      navigate(`/verify-otp?mobile=${mobile}&role=${role}`);
+      const otpMsg = res.data?.otp ? ` OTP: ${res.data.otp}` : "";
+      toast.success((res.data?.message || "OTP sent!") + otpMsg);
+
+      navigate(`/verify-otp?mobile=${mobile}&role=${role}`, { state: { otp: res.data?.otp } });
     } catch (err) {
       console.error(err);
       toast.error(err?.response?.data?.message || "Failed to send OTP");

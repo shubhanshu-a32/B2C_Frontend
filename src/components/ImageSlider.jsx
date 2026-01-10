@@ -27,7 +27,7 @@ export default function ImageSlider() {
   }, []);
 
   return (
-    <div className="relative w-full h-48 sm:h-64 md:h-80 lg:h-96 overflow-hidden rounded-xl shadow-md group">
+    <div className="relative w-full h-48 sm:h-80 md:h-96 lg:h-[500px] overflow-hidden rounded-xl shadow-md group">
       {SLIDES.map((img, i) => (
         <img
           key={i}
