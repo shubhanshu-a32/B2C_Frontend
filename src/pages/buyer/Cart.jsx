@@ -33,8 +33,22 @@ export default function CartPage() {
 
   const currentLocationStr = location ? `${location.area}, ${location.district}, ${location.state} - ${location.pincode}` : "";
 
+  // Group items by seller to calculate shipping per seller (matching backend logic)
+  const sellerGroups = {};
+  items.forEach(item => {
+    const sid = item.sellerId || "unknown";
+    if (!sellerGroups[sid]) sellerGroups[sid] = { count: 0, total: 0 };
+    sellerGroups[sid].count += 1; // Backend counts distinct items, or total qty? Controller uses items.length
+    sellerGroups[sid].total += item.price * item.qty;
+  });
+
+  let totalShipping = 0;
+  Object.values(sellerGroups).forEach(group => {
+    totalShipping += calcShipping(group.count, group.total);
+  });
+
   const total = items.reduce((s, i) => s + i.price * i.qty, 0);
-  const shipping = calcShipping(items.length, total);
+  const shipping = totalShipping;
   const grandTotal = total + shipping;
 
   useEffect(() => {
@@ -164,6 +178,25 @@ export default function CartPage() {
                   {shipping === 0 ? "Free" : `₹${shipping}`}
                 </span>
               </div>
+
+              {/* Shipping Breakdown Debug/Info */}
+              {Object.keys(sellerGroups).length > 0 && (
+                <div className="text-xs text-gray-500 space-y-1 pl-2 border-l-2 border-gray-200 dark:border-gray-700">
+                  {Object.entries(sellerGroups).map(([sid, group]) => (
+                    <div key={sid} className="flex justify-between">
+                      <span>
+                        Seller {sid === "unknown" ? "(Old Items)" : "..." + sid.slice(-4)}:
+                      </span>
+                      <span>₹{calcShipping(group.count, group.total)}</span>
+                    </div>
+                  ))}
+                  {sellerGroups["unknown"] && (
+                    <p className="text-red-500 text-[10px]">
+                      * Remove/Re-add old items to fix shipping
+                    </p>
+                  )}
+                </div>
+              )}
               <div className="border-t dark:border-gray-700 pt-3 flex justify-between font-bold text-lg text-gray-900 dark:text-white">
                 <span>Total</span>
                 <span>₹{grandTotal}</span>

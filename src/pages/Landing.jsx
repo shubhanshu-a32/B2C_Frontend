@@ -206,10 +206,12 @@ export default function MainLanding() {
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       <NavBar />
 
-      <main className="flex-1 w-full mx-auto px-4 py-6 space-y-12">
-
-        {/* IMAGE SLIDER */}
+      {/* IMAGE SLIDER - Full Width */}
+      <div className="w-full">
         <ImageSlider />
+      </div>
+
+      <main className="flex-1 w-full mx-auto px-4 py-6 space-y-12">
 
         {/* CATEGORY SECTION - HORIZONTAL SCROLL */}
         <section>

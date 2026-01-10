@@ -159,6 +159,13 @@ export default function BuyerOrders() {
                     <div className="flex-1">
                       <h4 className="font-semibold text-gray-900 dark:text-gray-100">{item.product?.title || "Unknown Product"}</h4>
                       <p className="text-sm text-gray-500 dark:text-gray-400">Qty: {item.quantity}</p>
+                      {item.product?.specs && (
+                        <div className="text-xs text-gray-500 mt-1 flex gap-3">
+                          {item.product.specs.size && <span>Size: {item.product.specs.size}</span>}
+                          {item.product.specs.color && <span>Color: {item.product.specs.color}</span>}
+                          {item.product.specs.weight && <span>Weight: {item.product.specs.weight}{item.product.specs.weightUnit}</span>}
+                        </div>
+                      )}
                     </div>
 
                     {/* Review Button */}

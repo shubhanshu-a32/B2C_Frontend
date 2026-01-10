@@ -7,7 +7,7 @@ import useAuthStore from "../../store/authStore";
 import toast from "react-hot-toast";
 import {
   ArrowLeft, Heart, Star, ShoppingCart, Zap,
-  MapPin, ShieldCheck, Truck, RotateCcw, ChevronRight
+  MapPin, ShieldCheck, Truck, RotateCcw, ChevronRight, ChevronLeft
 } from "lucide-react";
 import ProductDetailsSkeleton from "../../components/ui/preloaders/ProductDetailsSkeleton";
 
@@ -19,9 +19,6 @@ export default function ProductDetails() {
   const [activeImage, setActiveImage] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [isZoomed, setIsZoomed] = useState(false);
-
-  // Review Form State
-
 
   // Store hooks
   const addToCart = useCartStore((s) => s.addToCart);
@@ -75,6 +72,22 @@ export default function ProductDetails() {
     toggleWishlist(product);
   };
 
+  /* ---------- IMAGE SLIDER LOGIC ---------- */
+  const handleImageNavigation = (direction) => {
+    if (!product?.images?.length) return;
+
+    // Find index using the URL string match
+    const currentIndex = product.images.findIndex(img => img === activeImage);
+    let nextIndex;
+
+    if (direction === "next") {
+      nextIndex = (currentIndex + 1) % product.images.length;
+    } else {
+      nextIndex = (currentIndex - 1 + product.images.length) % product.images.length;
+    }
+
+    setActiveImage(product.images[nextIndex]);
+  };
 
 
   if (!product) {
@@ -85,6 +98,7 @@ export default function ProductDetails() {
   const deliveryDate = new Date();
   deliveryDate.setDate(deliveryDate.getDate() + 3);
   const deliveryDateString = deliveryDate.toLocaleDateString("en-US", { weekday: 'short', month: 'short', day: 'numeric' });
+  const isOutOfStock = product.stock <= 0;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans pb-12">
@@ -141,6 +155,32 @@ export default function ProductDetails() {
             >
               <Heart size={22} fill={isInWishlist ? "#ef4444" : "none"} className={isInWishlist ? "text-red-500" : ""} />
             </button>
+
+            {/* Slider Arrows */}
+            {product.images && product.images.length > 1 && (
+              <>
+                <button
+                  onClick={(e) => { e.stopPropagation(); handleImageNavigation("prev"); }}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/90 dark:bg-black/70 hover:bg-white dark:hover:bg-black text-gray-800 dark:text-white shadow-md transition-all hover:scale-110"
+                  aria-label="Previous Image"
+                >
+                  <ChevronLeft size={24} />
+                </button>
+
+                <button
+                  onClick={(e) => { e.stopPropagation(); handleImageNavigation("next"); }}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/90 dark:bg-black/70 hover:bg-white dark:hover:bg-black text-gray-800 dark:text-white shadow-md transition-all hover:scale-110"
+                  aria-label="Next Image"
+                >
+                  <ChevronRight size={24} />
+                </button>
+
+                {/* Image Counter Badge */}
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-3 py-1 bg-black/60 text-white text-xs rounded-full pointer-events-none">
+                  {product.images.indexOf(activeImage) + 1} / {product.images.length}
+                </div>
+              </>
+            )}
 
             {activeImage ? (
               <img
@@ -202,12 +242,30 @@ export default function ProductDetails() {
             <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed whitespace-pre-line">
               {product.description || "No description available for this product."}
             </p>
-            {product.variant && (
-              <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg border border-gray-100 dark:border-gray-700 mt-3 inline-block">
-                <span className="text-gray-500 dark:text-gray-400 text-xs uppercase font-bold tracking-wider block mb-1">Variant</span>
-                <span className="text-gray-900 dark:text-white font-medium">{product.variant}</span>
-              </div>
-            )}
+            {/* Product Specs */}
+            <div className="flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-300 mt-2">
+              {product.specs?.size && (
+                <div className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                  <span className="font-semibold">Size:</span> {product.specs.size}
+                </div>
+              )}
+              {product.specs?.color && (
+                <div className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                  <span className="font-semibold">Color:</span> {product.specs.color}
+                </div>
+              )}
+              {product.specs?.weight && (
+                <div className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                  <span className="font-semibold">Weight:</span> {product.specs.weight}{product.specs.weightUnit}
+                </div>
+              )}
+              {/* Fallback */}
+              {!product.specs && product.variant && (
+                <div className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                  <span className="font-semibold">Variant:</span> {product.variant}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Service Badges */}
@@ -245,7 +303,12 @@ export default function ProductDetails() {
             <h3 className="text-xl font-bold mb-4">₹{product.price?.toLocaleString()}</h3>
 
             <div className="space-y-1 mb-6 text-sm">
-              <p className="text-green-600 font-semibold">In Stock</p>
+              {isOutOfStock ? (
+                <p className="text-red-600 font-semibold">Out of Stock</p>
+              ) : (
+                <p className="text-green-600 font-semibold">In Stock</p>
+              )}
+
               {/* Could check stock < 10 for urgency */}
               <p className="text-gray-600 dark:text-gray-400">
                 Delivery by <span className="font-bold text-gray-900 dark:text-white">{deliveryDateString}</span>
@@ -275,6 +338,7 @@ export default function ProductDetails() {
               <select
                 value={quantity}
                 onChange={(e) => setQuantity(Number(e.target.value))}
+                disabled={isOutOfStock}
                 className="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded focus:ring-blue-500 focus:border-blue-500 block p-1"
               >
                 {[1, 2, 3, 4, 5].map(num => (
@@ -287,13 +351,17 @@ export default function ProductDetails() {
             <div className="space-y-3">
               <button
                 onClick={handleAddToCart}
-                className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-semibold py-3 rounded-full shadow-sm transition-colors flex justify-center items-center gap-2"
+                disabled={isOutOfStock}
+                className={`w-full font-semibold py-3 rounded-full shadow-sm transition-colors flex justify-center items-center gap-2
+                  ${isOutOfStock ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-yellow-400 hover:bg-yellow-500 text-black'}`}
               >
                 <ShoppingCart size={18} /> Add to Cart
               </button>
               <button
                 onClick={handleBuyNow}
-                className="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 rounded-full shadow-sm transition-colors flex justify-center items-center gap-2"
+                disabled={isOutOfStock}
+                className={`w-full font-semibold py-3 rounded-full shadow-sm transition-colors flex justify-center items-center gap-2
+                  ${isOutOfStock ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-orange-600 hover:bg-orange-700 text-white'}`}
               >
                 <Zap size={18} /> Buy Now
               </button>

@@ -14,14 +14,17 @@ export default function AddProduct() {
     description: "",
     price: "",
     stock: "",
-    stock: "",
-    variant: "",
     commission: "",
     category: "",
     subcategory: "",
+    size: "",
+    color: "",
+    weight: "",
+    weightUnit: "kg"
   });
 
-  const [images, setImages] = useState([]);
+  const [mainImage, setMainImage] = useState("");
+  const [additionalImages, setAdditionalImages] = useState([]);
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
@@ -36,7 +39,6 @@ export default function AddProduct() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
     setForm((prev) => ({
       ...prev,
       [name]: value,
@@ -45,10 +47,7 @@ export default function AddProduct() {
   };
 
   /* ---------- IMAGE UPLOAD ---------- */
-  const handleImageUpload = async (e) => {
-    const files = Array.from(e.target.files);
-    if (!files.length) return;
-
+  const uploadFiles = async (files) => {
     const formData = new FormData();
     files.forEach((file) => formData.append("images", file));
 
@@ -59,19 +58,71 @@ export default function AddProduct() {
         formData,
         { headers: { "Content-Type": "multipart/form-data" } }
       );
-
-      setImages((prev) => [...prev, ...(res.data.images || [])]);
-      toast.success("Images uploaded");
+      return res.data.images || [];
     } catch (err) {
       console.error(err);
       toast.error("Image upload failed");
+      return [];
     } finally {
       setUploading(false);
     }
   };
 
-  const removeImage = (indexToRemove) => {
-    setImages(images.filter((_, index) => index !== indexToRemove));
+  const handleMainImageUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+
+    // Validate files
+    const validFiles = files.filter(file => {
+      if (!file.type.startsWith("image/")) {
+        toast.error(`${file.name} is not an image`);
+        return false;
+      }
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error(`${file.name} exceeds 2MB limit`);
+        return false;
+      }
+      return true;
+    });
+
+    if (!validFiles.length) return;
+
+    const uploadedUrls = await uploadFiles(validFiles);
+    if (uploadedUrls.length > 0) {
+      setMainImage(uploadedUrls[0]);
+    }
+  };
+
+  const handleAdditionalImagesUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+
+    // Validate files
+    const validFiles = files.filter(file => {
+      if (!file.type.startsWith("image/")) {
+        toast.error(`${file.name} is not an image`);
+        return false;
+      }
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error(`${file.name} exceeds 2MB limit`);
+        return false;
+      }
+      return true;
+    });
+
+    if (!validFiles.length) return;
+
+    if (additionalImages.length + validFiles.length > 4) {
+      return toast.error("You can only upload up to 4 additional images");
+    }
+
+    const uploadedUrls = await uploadFiles(validFiles);
+    setAdditionalImages((prev) => [...prev, ...uploadedUrls]);
+  };
+
+  const removeMainImage = () => setMainImage("");
+  const removeAdditionalImage = (indexToRemove) => {
+    setAdditionalImages(additionalImages.filter((_, index) => index !== indexToRemove));
   };
 
   /* ---------- SUBMIT PRODUCT ---------- */
@@ -82,14 +133,26 @@ export default function AddProduct() {
       return toast.error("All fields are required");
     }
 
+    if (!mainImage) {
+      return toast.error("Main product image is required");
+    }
+
+    // Combine images: Main image is always first (index 0)
+    const allImages = [mainImage, ...additionalImages];
+
     try {
       await api.post("/products", {
         ...form,
         price: Number(form.price),
-        price: Number(form.price),
         stock: Number(form.stock),
         commission: Number(form.commission),
-        images,
+        images: allImages,
+        specs: {
+          size: form.size,
+          color: form.color,
+          weight: form.weight,
+          weightUnit: form.weightUnit || 'kg'
+        }
       });
 
       toast.success("Product added successfully");
@@ -162,47 +225,91 @@ export default function AddProduct() {
           </div>
 
           <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Media</h3>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Product Images</h3>
 
-            <div className="border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-xl p-8 text-center transition-colors hover:border-blue-500 dark:hover:border-blue-500 bg-gray-50 dark:bg-gray-900/50">
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="hidden"
-                id="image-upload"
-              />
-              <label htmlFor="image-upload" className="cursor-pointer flex flex-col items-center">
-                <div className="p-4 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full mb-3">
-                  <Upload size={24} />
-                </div>
-                <p className="text-lg font-medium text-gray-900 dark:text-white">Click to upload images</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">or drag and drop here</p>
-              </label>
-              {uploading && <p className="text-blue-500 mt-2 font-medium">Uploading...</p>}
-            </div>
-
-            {images.length > 0 && (
-              <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
-                {images.map((img, idx) => (
-                  <div key={idx} className="group relative aspect-square rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-900">
+            <div className="space-y-6">
+              {/* Main Image Section */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Main Image (Required)</label>
+                {!mainImage ? (
+                  <div className="border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-xl p-8 text-center transition-colors hover:border-blue-500 dark:hover:border-blue-500 bg-gray-50 dark:bg-gray-900/50">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleMainImageUpload}
+                      className="hidden"
+                      id="main-image-upload"
+                    />
+                    <label htmlFor="main-image-upload" className="cursor-pointer flex flex-col items-center">
+                      <div className="p-4 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full mb-3">
+                        <Upload size={24} />
+                      </div>
+                      <p className="text-lg font-medium text-gray-900 dark:text-white">Upload Main Image</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">This will be the cover image</p>
+                    </label>
+                  </div>
+                ) : (
+                  <div className="relative aspect-video w-full rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-900">
                     <img
-                      src={img}
-                      alt={`Preview ${idx + 1}`}
-                      className="w-full h-full object-cover"
+                      src={mainImage}
+                      alt="Main"
+                      className="w-full h-full object-contain"
                     />
                     <button
                       type="button"
-                      onClick={() => removeImage(idx)}
-                      className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                      onClick={removeMainImage}
+                      className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-sm"
                     >
-                      <X size={14} />
+                      <X size={16} />
                     </button>
+                    <div className="absolute bottom-2 left-2 px-3 py-1 bg-black/70 text-white text-xs rounded-full">
+                      Main Image
+                    </div>
                   </div>
-                ))}
+                )}
               </div>
-            )}
+
+              {/* Additional Images Section */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Additional Images (Optional, max 4)</label>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  {additionalImages.map((img, idx) => (
+                    <div key={idx} className="group relative aspect-square rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-900">
+                      <img
+                        src={img}
+                        alt={`Additional ${idx + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeAdditionalImage(idx)}
+                        className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 shadow-sm"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ))}
+
+                  {additionalImages.length < 4 && (
+                    <div className="aspect-square rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-500 bg-gray-50 dark:bg-gray-900/50 flex flex-col items-center justify-center cursor-pointer transition-colors relative">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleAdditionalImagesUpload}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        title="Upload additional images"
+                      />
+                      <div className="p-2 bg-gray-200 dark:bg-gray-800 rounded-full mb-2">
+                        <ImageIcon size={20} className="text-gray-500 dark:text-gray-400" />
+                      </div>
+                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Add Image</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -281,15 +388,54 @@ export default function AddProduct() {
                 />
               </div>
 
-              <div>
-                <label className={labelClass}>Variant (e.g. Size, Color)</label>
-                <input
-                  name="variant"
-                  placeholder="e.g. XL, Red, 128GB"
-                  value={form.variant}
-                  onChange={handleChange}
-                  className={inputClass}
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className={labelClass}>Size</label>
+                  <input
+                    name="size"
+                    placeholder="e.g. XL, 10"
+                    value={form.size || ""}
+                    onChange={handleChange}
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>Color</label>
+                  <input
+                    name="color"
+                    placeholder="e.g. Red, Blue"
+                    value={form.color || ""}
+                    onChange={handleChange}
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className={labelClass}>Weight</label>
+                  <input
+                    name="weight"
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={form.weight || ""}
+                    onChange={handleChange}
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>Unit</label>
+                  <select
+                    name="weightUnit"
+                    value={form.weightUnit || "kg"}
+                    onChange={handleChange}
+                    className={inputClass}
+                  >
+                    <option value="kg">Kilogram (kg)</option>
+                    <option value="g">Gram (g)</option>
+                  </select>
+                </div>
               </div>
 
               <div>

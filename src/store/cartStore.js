@@ -22,6 +22,8 @@ const useCartStore = create(
             price: product.price,
             qty,
             image: product.images?.[0] || null,
+            sellerId: typeof product.sellerId === 'object' ? product.sellerId._id : product.sellerId,
+            sellerName: typeof product.sellerId === 'object' ? product.sellerId.shopName : (product.sellerName || "Unknown Seller"),
           });
         }
         set({ items });
