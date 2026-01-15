@@ -1,111 +1,111 @@
 import {
-    Smartphone,
-    Shirt,
-    ShoppingBag,
-    Home,
-    Dumbbell,
-    BookOpen,
-    Baby,
-    Palette,
-    Package,
-    Laptop,
-    Watch,
-    Footprints,
-    Armchair,
-    Refrigerator,
-    Car,
-    HeartPulse,
-    Pencil,
-    Gift,
-    Utensils,
-    Monitor,
-    Headphones,
-    Camera,
-    Briefcase,
-    Music,
-    Wrench,
-    Leaf,
-    Zap,
-    Plug,
-    Apple,
-    UtensilsCrossed,
-    Hammer,
-    ShoppingBasket
-} from "lucide-react";
+    FcCellPhone,
+    FcChargeBattery,
+    FcFlashOn,
+    FcMultipleDevices,
+    FcCloth,
+    FcConferenceCall,
+    FcBusinesswoman,
+    FcDepartment,
+    FcHome,
+    FcShop,
+    FcPaid,
+    FcSportsMode,
+    FcReading,
+    FcEditImage,
+    FcBearish,
+    FcSelfie,
+    FcAutomotive,
+    FcBriefcase,
+    FcHeadset,
+    FcCamera,
+    FcGlobe,
+    FcMusic,
+    FcSupport,
+    FcLandscape,
+    FcPackage,
+    FcRating,
+    FcLike,
+    FcIdea,
+    FcElectricalSensor,
+    FcElectricity,
+    FcPhoneAndroid,
+    FcClock,
+    FcPrint,
+    FcImageFile,
+    FcGoogle,
+    FcAndroidOs,
+    FcAlarmClock,
+    FcKindle
+} from "react-icons/fc";
 
 export const categoryIcons = {
-    "electronics": Smartphone,
-    "electricals": Plug,
-    "electric": Zap,
-    "mobiles": Smartphone,
-    "mobile": Smartphone,
-    "laptops": Laptop,
-    "laptop": Laptop,
-    "computers": Monitor,
-    "accessories": Watch,
-    "watches": Watch,
-    "fashion": Shirt,
-    "clothing": Shirt,
-    "men": Shirt,
-    "women": Shirt,
-    "footwear": Footprints,
-    "shoes": Footprints,
-    "home": Home,
-    "furniture": Armchair,
-    "decor": Home,
-    "kitchen": Utensils,
-    "appliances": Refrigerator,
-    "grocery": ShoppingBag,
-    "daily-needs": ShoppingBasket,
-    "daily needs": ShoppingBasket,
-    "food-grocery": Apple,
-    "food": UtensilsCrossed,
-    "sports": Dumbbell,
-    "fitness": Dumbbell,
-    "books": BookOpen,
-    "stationery": Pencil,
-    "toys": Baby,
-    "kids": Baby,
-    "baby": Baby,
-    "beauty": Palette,
-    "makeup": Palette,
-    "personal care": HeartPulse,
-    "health": HeartPulse,
-    "automotive": Car,
-    "cars": Car,
-    "gifts": Gift,
-    "gadgets": Headphones,
-    "audio": Headphones,
-    "cameras": Camera,
-    "photography": Camera,
-    "travel": Briefcase,
-    "bags": Briefcase,
-    "luggage": Briefcase,
-    "music": Music,
-    "instruments": Music,
-    "hardware": Wrench,
-    "hardware-diy": Wrench,
-    "diy": Wrench,
-    "tools": Wrench,
-    "garden": Leaf,
-    "plants": Leaf
+    "electronics": FcCellPhone,
+    "electricals": FcElectricalSensor,
+    "electric": FcElectricity,
+    "mobiles": FcPhoneAndroid,
+    "mobile": FcPhoneAndroid,
+    "laptops": FcMultipleDevices, // Valid alternative
+    "laptop": FcMultipleDevices,
+    "computers": FcMultipleDevices,
+    "accessories": FcHeadset,
+    "watches": FcAlarmClock, // Valid alternative
+    "fashion": FcCloth,
+    "clothing": FcCloth,
+    "men": FcConferenceCall,
+    "women": FcBusinesswoman,
+    "footwear": FcPrint,
+    "shoes": FcPrint,
+    "home": FcHome,
+    "furniture": FcHome, // Valid alternative
+    "decor": FcLandscape, // Valid alternative
+    "kitchen": FcShop, // Fallback
+    "appliances": FcChargeBattery,
+    "grocery": FcShop,
+    "daily-needs": FcPaid,
+    "daily needs": FcPaid,
+    "food-grocery": FcShop,
+    "food": FcShop, // Fallback
+    "sports": FcSportsMode,
+    "fitness": FcSportsMode,
+    "books": FcReading,
+    "stationery": FcEditImage,
+    "toys": FcBearish,
+    "kids": FcBearish,
+    "baby": FcKindle, // Abstract
+    "beauty": FcSelfie,
+    "makeup": FcSelfie,
+    "personal care": FcLike,
+    "health": FcLike,
+    "automotive": FcAutomotive,
+    "cars": FcAutomotive,
+    "gifts": FcPackage,
+    "gadgets": FcHeadset,
+    "audio": FcHeadset,
+    "cameras": FcCamera,
+    "photography": FcCamera,
+    "travel": FcGlobe,
+    "bags": FcBriefcase,
+    "luggage": FcBriefcase,
+    "music": FcMusic,
+    "instruments": FcMusic,
+    "hardware": FcSupport,
+    "hardware-diy": FcSupport,
+    "diy": FcSupport,
+    "tools": FcSupport,
+    "garden": FcLandscape,
+    "plants": FcLandscape
 };
 
+// No colors needed as Fc icons are colorful
+export const categoryColors = {};
+export const categoryImages = {};
 
-// Fallback icons for sub-categories without specific match
+export const DefaultCategoryIcon = FcPackage;
+
 const fallbackIcons = [
-    Package, Tag, Star, Disc, Layers, Box, Circle, Square,
-    Triangle, Hexagon, Heart, Cloud, Sun, Moon, Flag,
-    Bookmark, Award, Anchor, Aperture, Archive
+    FcPackage, FcRating, FcLike, FcIdea, FcGoogle, FcAndroidOs
 ];
-
-import {
-    Tag, Star, Disc, Layers, Box, Circle, Square,
-    Triangle, Hexagon, Heart, Cloud, Sun, Moon, Flag,
-    Bookmark, Award, Anchor, Aperture, Archive
-} from "lucide-react";
-
-export const DefaultCategoryIcon = Package;
 
 export const getSubCategoryIcon = (subName) => {
     if (!subName) return DefaultCategoryIcon;
@@ -115,13 +115,12 @@ export const getSubCategoryIcon = (subName) => {
     if (categoryIcons[lower]) return categoryIcons[lower];
 
     // 2. Try partial match
-    // e.g. "Gaming Laptops" -> contains "laptop"
     const keys = Object.keys(categoryIcons);
     for (const key of keys) {
         if (lower.includes(key)) return categoryIcons[key];
     }
 
-    // 3. Deterministic Fallback based on string hash
+    // 3. Fallback
     let hash = 0;
     for (let i = 0; i < subName.length; i++) {
         hash = subName.charCodeAt(i) + ((hash << 5) - hash);

@@ -26,7 +26,7 @@ function CategoryRow({ title, categoryId }) {
   useEffect(() => {
     setLoading(true);
     const params = { category: categoryId, limit: 8 };
-    if (location) {
+    if (location && location.area !== "Katni") {
       params.pincode = location.pincode;
       params.area = location.area;
     }
@@ -38,7 +38,7 @@ function CategoryRow({ title, categoryId }) {
         setProducts(res.data.data);
       })
       .catch((err) => {
-        console.error(`Failed to load ${title}`, err);
+        // console.error(`Failed to load ${title}`, err);
       })
       .finally(() => setLoading(false));
   }, [categoryId, title, location]);
@@ -145,14 +145,14 @@ export default function MainLanding() {
   // Fetch Sellers (Filtered by Location)
   useEffect(() => {
     const sellerParams = {};
-    if (location) {
+    if (location && location.area !== "Katni") {
       sellerParams.pincode = location.pincode;
       sellerParams.area = location.area;
     }
 
     api.get("/seller/profile/list", { params: sellerParams })
       .then((res) => setSellers(res.data))
-      .catch((err) => console.error("Failed to load sellers", err));
+      .catch(() => { });
   }, [location]);
 
   // Fetch Featured Products for Slider
@@ -176,12 +176,12 @@ export default function MainLanding() {
     if (filters.maxPrice) params.maxPrice = filters.maxPrice;
     if (filters.inStock) params.inStock = true;
 
-    if (location) {
+    if (location && location.area !== "Katni") {
       params.pincode = location.pincode;
       params.area = location.area;
     }
 
-    console.log("Fetching landing products with params:", params);
+
 
     api.get("/products", {
       params
@@ -191,7 +191,7 @@ export default function MainLanding() {
         setTotalPages(res.data.pages);
       })
       .catch((err) => {
-        console.error("Failed to load featured products", err);
+        // console.error("Failed to load featured products", err);
       })
       .finally(() => setLoadingProducts(false));
   }, [page, limit, location, category, subcategory, filters]);
@@ -229,6 +229,7 @@ export default function MainLanding() {
             </button>
             {categories.map((cat) => {
               const Icon = categoryIcons[cat.name.toLowerCase()] || categoryIcons[cat.slug?.toLowerCase()] || DefaultCategoryIcon;
+
               return (
                 <button
                   key={cat._id}
@@ -239,7 +240,7 @@ export default function MainLanding() {
                       : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
                     }`}
                 >
-                  <Icon className="w-5 h-5 sm:w-6 sm:h-6 mb-0.5" />
+                  <Icon className="w-8 h-8 sm:w-10 sm:h-10 mb-0.5" />
                   <span className="text-[10px] sm:text-xs font-medium text-center leading-tight px-0.5 truncate w-full">{cat.name}</span>
                 </button>
               );
@@ -344,6 +345,8 @@ export default function MainLanding() {
           </div>
         )}
 
+
+
         {/* POPULAR RETAILERS */}
         <section>
           <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Popular Retailers</h2>
@@ -358,10 +361,26 @@ export default function MainLanding() {
           )}
         </section>
 
+        {/* DEALS IN FOOD-GROCERY (Specific placement) */}
+        {isBrowsingAll && categories.find(c => c.name === "Food-Grocery" || c.slug === "food-grocery") && (
+          <CategoryRow
+            title="Deals in Food-Grocery"
+            categoryId={categories.find(c => c.name === "Food-Grocery" || c.slug === "food-grocery").slug}
+          />
+        )}
+
+        {/* DEALS IN VEGETABLE AND FRUITS (Specific placement above All Products) */}
+        {isBrowsingAll && categories.find(c => c.name === "Vegetable and Fruits" || c.slug === "vegetable-and-fruits") && (
+          <CategoryRow
+            title="Deals in Vegetable and Fruits"
+            categoryId={categories.find(c => c.name === "Vegetable and Fruits" || c.slug === "vegetable-and-fruits").slug}
+          />
+        )}
+
         {/* FEATURED PRODUCTS - SLIDEABLE */}
         <section>
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl sm:text-2xl font-bold">Featured Products</h2>
+            <h2 className="text-xl sm:text-2xl font-bold">All Products</h2>
             <div className="flex items-center gap-4">
               <div className="flex gap-2">
                 <button
@@ -404,16 +423,21 @@ export default function MainLanding() {
           )}
         </section>
 
-        {/* DYNAMIC DEALS SECTIONS */}
+        {/* DYNAMIC DEALS SECTIONS (Excluding Food-Grocery) */}
         {isBrowsingAll && (
           <div className="space-y-12">
-            {categories.map((cat) => (
-              <CategoryRow
-                key={cat._id}
-                title={`Deals in ${cat.name}`}
-                categoryId={cat.slug}
-              />
-            ))}
+            {categories
+              .filter(cat =>
+                cat.name !== "Food-Grocery" && cat.slug !== "food-grocery" &&
+                cat.name !== "Vegetable and Fruits" && cat.slug !== "vegetable-and-fruits"
+              )
+              .map((cat) => (
+                <CategoryRow
+                  key={cat._id}
+                  title={`Deals in ${cat.name}`}
+                  categoryId={cat.slug}
+                />
+              ))}
           </div>
         )}
 

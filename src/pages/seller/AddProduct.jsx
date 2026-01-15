@@ -60,7 +60,7 @@ export default function AddProduct() {
       );
       return res.data.images || [];
     } catch (err) {
-      console.error(err);
+      // console.error(err);
       toast.error("Image upload failed");
       return [];
     } finally {
@@ -158,7 +158,7 @@ export default function AddProduct() {
       toast.success("Product added successfully");
       navigate("/seller/products");
     } catch (err) {
-      console.error(err);
+      // console.error(err);
       toast.error("Failed to add product");
     }
   };

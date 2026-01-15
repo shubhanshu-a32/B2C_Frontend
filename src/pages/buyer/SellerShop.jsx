@@ -27,7 +27,7 @@ export default function SellerShop() {
         const productsRes = await api.get(`/products?seller=${sellerId}`);
         setProducts(productsRes.data.data || []);
       } catch (err) {
-        console.error("Failed to load seller shop data", err);
+        // console.error("Failed to load seller shop data", err);
       } finally {
         setLoading(false);
       }
@@ -56,7 +56,7 @@ export default function SellerShop() {
         : null;
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-8 animate-fade-in px-4 py-6">
       {/* Navigation Header */}
       {fromProductId && (
         <div>
@@ -73,21 +73,32 @@ export default function SellerShop() {
       {/* Modern Hero Section */}
       <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
         {/* Decorative Background Gradient */}
-        <div className="h-32 bg-gradient-to-r from-blue-600 to-indigo-600 w-full relative">
-          <div className="absolute inset-0 bg-black/10"></div>
-          {/* Abstract circles */}
-          <div className="absolute top-0 right-0 p-4 opacity-10">
-            <svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-              <path fill="white" d="M44.7,-76.4C58.9,-69.2,71.8,-59.1,81.6,-46.6C91.4,-34.1,98.1,-19.2,95.8,-4.9C93.5,9.4,82.2,23.1,70.8,34.3C59.4,45.5,47.9,54.2,35.6,60.7C23.3,67.2,10.2,71.5,-2.1,75.1C-14.4,78.7,-25.9,81.6,-36.7,76.5C-47.5,71.4,-57.6,58.3,-65.4,45C-73.2,31.7,-78.7,18.2,-81.2,3.8C-83.7,-10.6,-83.2,-25.9,-75.6,-38.5C-68,-51.1,-53.3,-61,-38.9,-68C-24.5,-75,-10.4,-79.1,2.8,-83.9C16,-88.7,30.5,-94.1,44.7,-76.4Z" transform="translate(100 100)" />
-            </svg>
-          </div>
+        {/* Decorative Background Gradient / Cover Photo */}
+        <div className="h-48 w-full relative bg-gray-200 dark:bg-gray-700">
+          {seller.coverPhoto ? (
+            <img src={seller.coverPhoto} alt="Cover" className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-r from-blue-600 to-indigo-600 relative overflow-hidden">
+              <div className="absolute inset-0 bg-black/10"></div>
+              {/* Abstract circles */}
+              <div className="absolute top-0 right-0 p-4 opacity-10">
+                <svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                  <path fill="white" d="M44.7,-76.4C58.9,-69.2,71.8,-59.1,81.6,-46.6C91.4,-34.1,98.1,-19.2,95.8,-4.9C93.5,9.4,82.2,23.1,70.8,34.3C59.4,45.5,47.9,54.2,35.6,60.7C23.3,67.2,10.2,71.5,-2.1,75.1C-14.4,78.7,-25.9,81.6,-36.7,76.5C-47.5,71.4,-57.6,58.3,-65.4,45C-73.2,31.7,-78.7,18.2,-81.2,3.8C-83.7,-10.6,-83.2,-25.9,-75.6,-38.5C-68,-51.1,-53.3,-61,-38.9,-68C-24.5,-75,-10.4,-79.1,2.8,-83.9C16,-88.7,30.5,-94.1,44.7,-76.4Z" transform="translate(100 100)" />
+                </svg>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="px-6 pb-6 mt-[-3rem] relative z-10">
           <div className="flex flex-col md:flex-row gap-6 items-start">
             {/* Avatar / Icon */}
-            <div className="w-24 h-24 bg-white dark:bg-gray-700 rounded-2xl shadow-lg p-1 flex items-center justify-center border-4 border-white dark:border-gray-800">
-              <Store size={40} className="text-blue-600 dark:text-blue-400" />
+            <div className="w-24 h-24 bg-white dark:bg-gray-700 rounded-2xl shadow-lg p-1 flex items-center justify-center border-4 border-white dark:border-gray-800 overflow-hidden">
+              {seller.profilePicture ? (
+                <img src={seller.profilePicture} alt={seller.shopName} className="w-full h-full object-cover rounded-xl" />
+              ) : (
+                <Store size={40} className="text-blue-600 dark:text-blue-400" />
+              )}
             </div>
 
             {/* Shop Info */}
@@ -145,7 +156,7 @@ export default function SellerShop() {
             <ShoppingBag size={20} />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Products ({products.length})
+            All Products ({products.length})
           </h2>
         </div>
 

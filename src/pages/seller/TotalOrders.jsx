@@ -16,7 +16,7 @@ export default function TotalOrders() {
             const res = await api.get("/orders/seller/me?limit=100");
             setOrders(res.data.data || []);
         } catch (err) {
-            console.error("Failed to fetch orders", err);
+            // console.error("Failed to fetch orders", err);
         } finally {
             setLoading(false);
         }

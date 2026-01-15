@@ -8,11 +8,11 @@ export default function BuyerDashboard() {
     totalOrders: 0,
     totalSpent: 0,
   });
-  
+
   useEffect(() => {
     loadStats();
   }, []);
-  
+
   const loadStats = async () => {
     try {
       const { data } = await api.get("/orders");
@@ -23,7 +23,7 @@ export default function BuyerDashboard() {
         totalSpent: total,
       });
     } catch (err) {
-      console.error(err);
+      // console.error(err);
     }
   };
 

@@ -28,7 +28,7 @@ export default function BuyerOrders() {
       setOrders(data.data || []);
       setTotalPages(data.pages || 1);
     } catch (err) {
-      console.error(err);
+      // console.error(err);
     } finally {
       setLoading(false);
     }
@@ -47,7 +47,7 @@ export default function BuyerOrders() {
           totalSpent: data.totalSpent || 0
         });
       })
-      .catch(err => console.error("Failed to load stats", err));
+      .catch(err => { /* console.error("Failed to load stats", err) */ });
   }, []);
 
   const statusColor = (status) => {
@@ -74,7 +74,7 @@ export default function BuyerOrders() {
       link.click();
       link.remove();
     } catch (err) {
-      console.error("Failed to download invoice", err);
+      // console.error("Failed to download invoice", err);
       // alert("Failed to download invoice");
       toast.error("Failed to download invoice");
     }
@@ -148,36 +148,41 @@ export default function BuyerOrders() {
               {/* Items */}
               <div className="p-4 space-y-4">
                 {order.items.map((item, idx) => (
-                  <div key={idx} className="flex gap-4 items-center">
-                    <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-lg shrink-0 overflow-hidden">
-                      {item.product?.images?.[0] ? (
-                        <img src={item.product.images[0]} alt="" className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">No Img</div>
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-gray-900 dark:text-gray-100">{item.product?.title || "Unknown Product"}</h4>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Qty: {item.quantity}</p>
-                      {item.product?.specs && (
-                        <div className="text-xs text-gray-500 mt-1 flex gap-3">
-                          {item.product.specs.size && <span>Size: {item.product.specs.size}</span>}
-                          {item.product.specs.color && <span>Color: {item.product.specs.color}</span>}
-                          {item.product.specs.weight && <span>Weight: {item.product.specs.weight}{item.product.specs.weightUnit}</span>}
-                        </div>
-                      )}
+                  <div key={idx} className="flex flex-col sm:flex-row gap-4 sm:items-center">
+                    {/* Content Group (Image + Text) */}
+                    <div className="flex gap-4 flex-1 w-full">
+                      <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-lg shrink-0 overflow-hidden">
+                        {item.product?.images?.[0] ? (
+                          <img src={item.product.images[0]} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">No Img</div>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-gray-900 dark:text-gray-100">{item.product?.title || "Unknown Product"}</h4>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Qty: {item.quantity}</p>
+                        {item.product?.specs && (
+                          <div className="text-xs text-gray-500 mt-1 flex gap-3">
+                            {item.product.specs.size && <span>Size: {item.product.specs.size}</span>}
+                            {item.product.specs.color && <span>Color: {item.product.specs.color}</span>}
+                            {item.product.specs.weight && <span>Weight: {item.product.specs.weight}{item.product.specs.weightUnit}</span>}
+                          </div>
+                        )}
+                      </div>
                     </div>
 
-                    {/* Review Button */}
-                    <button
-                      onClick={() => openReviewModal(item.product)}
-                      className="px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700 transition"
-                    >
-                      Give Review
-                    </button>
+                    {/* Actions Group (Review + Price) */}
+                    <div className="flex justify-between items-center w-full sm:w-auto gap-4 sm:justify-end">
+                      <button
+                        onClick={() => openReviewModal(item.product)}
+                        className="px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+                      >
+                        Give Review
+                      </button>
 
-                    <div className="font-semibold text-gray-900 dark:text-gray-100 w-20 text-right">
-                      ₹{item.price}
+                      <div className="font-semibold text-gray-900 dark:text-gray-100 sm:w-20 text-right">
+                        ₹{item.price}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -235,7 +240,7 @@ function ReviewModal({ product, onClose }) {
       toast.success("Review submitted successfully!");
       onClose();
     } catch (err) {
-      console.error("Review failed", err);
+      // console.error("Review failed", err);
       toast.error(err.response?.data?.message || "Failed to submit review");
     } finally {
       setSubmitting(false);

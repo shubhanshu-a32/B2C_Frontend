@@ -2,7 +2,7 @@ import axios from "axios";
 import useAuthStore from "../store/authStore";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:4000/api",
+  baseURL: "/api" || import.meta.env.VITE_API_URL,
 });
 
 // Attach access token
@@ -27,7 +27,7 @@ api.interceptors.response.use(
       if (!refreshToken) return Promise.reject(error);
 
       try {
-        const res = await axios.post("http://localhost:4000/api/auth/refresh", {
+        const res = await axios.post("/api/auth/refresh", {
           refreshToken,
         });
 

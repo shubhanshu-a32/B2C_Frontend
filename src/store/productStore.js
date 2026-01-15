@@ -8,7 +8,7 @@ const useProductStore = create((set) => ({
   pages: 1,
   total: 0,
   loading: false,
-  
+
   fetchProducts: async (options = {}) => {
     const page = options.page || 1;
     const limit = options.limit || 12;
@@ -28,7 +28,7 @@ const useProductStore = create((set) => ({
         loading: false
       });
     } catch (err) {
-      console.error("fetchProducts:", err);
+      // console.error("fetchProducts:", err);
       set({ loading: false });
     }
   },
@@ -39,7 +39,7 @@ const useProductStore = create((set) => ({
       const res = await api.get(`/products/${id}`);
       set({ product: res.data, loading: false });
     } catch (err) {
-      console.error("fetchProductById:", err);
+      // console.error("fetchProductById:", err);
       set({ loading: false });
     }
   },

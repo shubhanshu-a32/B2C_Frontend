@@ -13,7 +13,7 @@ const useCategoryStore = create((set, get) => ({
       const res = await api.get("/categories");
       set({ categories: res.data, loading: false });
     } catch (err) {
-      console.error("fetchCategories:", err);
+      // console.error("fetchCategories:", err);
       set({ loading: false });
     }
   },

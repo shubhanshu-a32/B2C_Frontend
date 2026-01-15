@@ -7,8 +7,14 @@ export default defineConfig({
     host: '0.0.0.0',
     strictPort: true,
     allowedHosts: [
-      "fateful-locomotively-maximo.ngrok-free.dev",
+      "all",
     ],
-    origin: 'http://localhost:5173'
+    proxy: {
+      '/api': { 
+        target: 'http://localhost:4000',
+        changeOrigin: true,
+        secure: false, 
+      },
+    },
   },
 });

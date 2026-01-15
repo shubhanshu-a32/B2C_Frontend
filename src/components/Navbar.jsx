@@ -39,7 +39,7 @@ export default function NavBar() {
 
   return (
     <>
-      <nav className="w-full sm:text-sm text-lg bg-white dark:bg-gray-800 shadow px-4 py-3 flex items-center justify-between sticky top-0 z-50">
+      <nav className="w-full sm:text-sm text-lg bg-white dark:bg-gray-800 shadow px-4 py-3 flex items-center justify-between gap-2 sm:gap-4 sticky top-0 z-50">
         <div className="flex items-center gap-3">
           {(!user || user.role !== "seller") && (
             <button onClick={() => setOpenCategories(true)} className="p-3 rounded hover:bg-gray-100 dark:hover:bg-gray-700">
@@ -51,8 +51,8 @@ export default function NavBar() {
             className={`sm:text-xl text-xl font-bold text-brand dark:text-white ${user?.role === "seller" ? "ml-3" : ""}`}
           >
             <div className="flex items-center gap-2">
-              <img src={Logo} alt="Logo" className="w-10 h-10" />
-              <span className="text-xl font-semibold">
+              <img src={Logo} alt="Logo" className="w-8 h-8 sm:w-10 sm:h-10" />
+              <span className="text-base sm:text-lg lg:text-xl font-semibold">
                 KETALOG
               </span>
             </div>

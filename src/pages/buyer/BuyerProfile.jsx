@@ -28,7 +28,7 @@ export default function BuyerProfile() {
     // Fetch locations dynamically
     api.get("/location")
       .then((res) => setDeliveryLocations(res.data))
-      .catch((err) => console.error("Failed to load locations", err));
+      .catch((err) => { /* console.error("Failed to load locations", err) */ });
   }, []);
 
   useEffect(() => {
@@ -51,7 +51,7 @@ export default function BuyerProfile() {
           addresses: data.addresses || p.addresses || []
         }));
       } catch (err) {
-        console.error("Failed to load buyer profile:", err);
+        // console.error("Failed to load buyer profile:", err);
         toast.error("Failed to load profile");
       } finally {
         setFetchingProfile(false);
@@ -99,7 +99,7 @@ export default function BuyerProfile() {
       });
       toast.success("Profile updated");
     } catch (err) {
-      console.error("saveProfile error:", err);
+      // console.error("saveProfile error:", err);
       if (err.response?.status === 401) {
         toast.error("Session expired. Please log in again.");
       } else {

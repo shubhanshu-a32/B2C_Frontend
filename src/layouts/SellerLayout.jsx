@@ -105,8 +105,8 @@ export default function SellerLayout() {
           <div className="flex items-center gap-4">
             {/* User Info */}
             {user && (
-              <div className="hidden sm:flex items-center gap-3 mr-4">
-                <div className="text-right">
+              <div className="flex items-center gap-3 mr-2 sm:mr-4">
+                <div className="hidden sm:block text-right">
                   <p className="text-sm font-medium text-gray-900 dark:text-white line-clamp-1">
                     {user.name || user.shopName || "Seller"}
                   </p>
@@ -114,8 +114,12 @@ export default function SellerLayout() {
                     {user.email}
                   </p>
                 </div>
-                <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-700 dark:text-blue-300 font-bold border border-blue-200 dark:border-blue-800">
-                  {user.name ? user.name.charAt(0).toUpperCase() : 'S'}
+                <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-700 dark:text-blue-300 font-bold border border-blue-200 dark:border-blue-800 overflow-hidden">
+                  {user.profilePicture ? (
+                    <img src={user.profilePicture} alt="Profile" className="w-full h-full object-cover" />
+                  ) : (
+                    user.shopName ? user.shopName.charAt(0).toUpperCase() : 'S'
+                  )}
                 </div>
               </div>
             )}
@@ -130,10 +134,11 @@ export default function SellerLayout() {
 
             <button
               onClick={handleLogout}
-              className="p-2 rounded-lg bg-red-50 dark:bg-red-900/10 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-50 dark:bg-red-900/10 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors"
               title="Logout"
             >
-              <LogOut className="w-5 h-5" />
+              <LogOut className="w-4 h-4" />
+              <span className="text-sm font-medium hidden sm:inline">Logout</span>
             </button>
           </div>
         </header>

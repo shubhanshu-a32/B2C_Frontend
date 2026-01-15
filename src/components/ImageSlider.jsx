@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import fashion from "../assets/hero_section/fashion_banner.png";
-import electronics from "../assets/hero_section/electronics.jpeg";
+import electronics from "../assets/hero_section/electronics.png";
 import electricals from "../assets/hero_section/electricals.jpeg";
 import home_kitchen from "../assets/hero_section/home_kitchen.jpeg";
 import groceries from "../assets/hero_section/food_grocery_banner.png";
-import daily_needs from "../assets/hero_section/daily_needs.jpeg";
+import daily_needs from "../assets/hero_section/daily_needs.png";
 
 const SLIDES = [
   fashion,
@@ -27,7 +27,7 @@ export default function ImageSlider() {
   }, []);
 
   return (
-    <div className="relative w-full h-48 sm:h-80 md:h-96 lg:h-[500px] overflow-hidden rounded-xl shadow-md group">
+    <div className="relative w-full h-48 sm:h-80 md:h-96 lg:h-[500px] overflow-hidden shadow-md group">
       {SLIDES.map((img, i) => (
         <img
           key={i}
@@ -44,7 +44,7 @@ export default function ImageSlider() {
           <button
             key={i}
             onClick={() => setIndex(i)}
-            className={`w-2 h-2 rounded-full transition-all ${i === index ? "bg-white w-4" : "bg-white/50 hover:bg-white/80"
+            className={`w-2 h-2 transition-all ${i === index ? "bg-white w-4" : "bg-white/50 hover:bg-white/80"
               }`}
           />
         ))}

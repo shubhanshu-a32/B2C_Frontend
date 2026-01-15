@@ -23,7 +23,7 @@ export default function LocationFilter() {
 
                 <div className="flex flex-col leading-tight">
                     <span className="text-base font-semibold text-gray-800 dark:text-gray-200 truncate max-w-[150px]">
-                        {location ? `${location.area}, ${location.pincode}` : "Select Location"}
+                        {location ? (location.area === "Katni" ? "Katni" : `${location.area}, ${location.pincode}`) : "Select Location"}
                     </span>
                 </div>
 

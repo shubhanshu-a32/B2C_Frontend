@@ -35,7 +35,14 @@ export default function Login() {
           label="Mobile Number"
           placeholder="Enter mobile number"
           value={mobile}
-          onChange={(e) => setMobile(e.target.value)}
+          onChange={(e) => {
+            const val = e.target.value;
+            if (val.length === 1 && parseInt(val) < 6) {
+              alert("Mobile number must start with 6, 7, 8, or 9");
+              return;
+            }
+            setMobile(val);
+          }}
         />
 
         <Button className="w-full mt-4" type="submit" disabled={loading}>

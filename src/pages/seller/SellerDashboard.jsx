@@ -58,7 +58,7 @@ export default function SellerDashboard() {
       setCategorySales(catRes.data);
 
     } catch (err) {
-      console.error("Error loading dashboard:", err);
+      // console.error("Error loading dashboard:", err);
     }
   };
 

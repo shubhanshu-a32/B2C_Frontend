@@ -8,7 +8,7 @@ const getInitialState = () => {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) return JSON.parse(raw);
   } catch (err) {
-    console.error("Auth restore failed:", err);
+
   }
   return { user: null, accessToken: null, refreshToken: null };
 };

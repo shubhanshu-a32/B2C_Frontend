@@ -36,11 +36,11 @@ export default function OTPVerify() {
 
     setLoading(true);
     const payload = { mobile, role, otp: otp.trim() };
-    console.log("→ verify-otp payload:", payload);
+
 
     try {
       const res = await api.post("/auth/verify-otp", payload);
-      console.log("verify-otp success:", res.data);
+
 
       // Accept many backend shapes
       const user = res.data?.user || res.data?.data?.user || res.data;
@@ -81,11 +81,7 @@ export default function OTPVerify() {
       navigate(role === "buyer" ? "/buyer/shop" : "/seller/dashboard");
     } catch (err) {
       const serverMsg = err?.response?.data?.message || err?.response?.data || err?.message || "OTP verification failed";
-      console.error("verify-otp error response:", {
-        status: err?.response?.status,
-        data: err?.response?.data,
-        payloadSent: payload,
-      });
+
       toast.error(serverMsg);
     } finally {
       setLoading(false);

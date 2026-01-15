@@ -25,6 +25,7 @@ export default function ProductCard({ product }) {
     if (!user || user.role !== "buyer") return requireLogin();
     if (product.stock <= 0) return toast.error("Out of stock");
     addToCart(product, 1);
+    toast.success("Added to Cart");
   };
 
   const handleWishlist = () => {
@@ -33,14 +34,14 @@ export default function ProductCard({ product }) {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow hover:shadow-lg transition p-3 sm:p-4 flex flex-col border border-transparent dark:border-gray-700 h-full">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow hover:shadow-xl transition-all duration-300 hover:-translate-y-1 p-3 sm:p-4 flex flex-col border border-transparent dark:border-gray-700 h-full group">
       <Link to={`/buyer/product/${product._id}`}>
         <div className="h-32 sm:h-44 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden mb-2 sm:mb-3">
           {product.images?.length ? (
             <img
               src={product.images[0]}
               alt={product.title}
-              className="h-full w-full object-cover"
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
             />
           ) : (
             <div className="h-full flex items-center justify-center text-gray-400 text-xs sm:text-base">

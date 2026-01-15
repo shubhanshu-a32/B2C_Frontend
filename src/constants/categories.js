@@ -1,9 +1,9 @@
 import Grocery from '../assets/hero_section/food_grocery_banner.png';
-import Electronics from '../assets/hero_section/electronics.jpeg';
+import Electronics from '../assets/hero_section/electronics.png';
 import Fashion from '../assets/hero_section/fashion_banner.png';
 import Electricals from '../assets/hero_section/electricals.jpeg';
 import Home_Kitchen from '../assets/hero_section/home_kitchen.jpeg';
-import Daily_needs from '../assets/hero_section/daily_needs.jpeg';
+import Daily_needs from '../assets/hero_section/daily_needs.png';
 
 export const CATEGORIES = [
   {

@@ -41,7 +41,7 @@ export default function ProductDetails() {
         setReviews(reviewsRes.data);
       } catch (error) {
         toast.error("Failed to load product");
-        console.error(error);
+        // console.error(error);
       }
     };
     load();
@@ -296,7 +296,7 @@ export default function ProductDetails() {
               <div className="bg-blue-50 dark:bg-gray-800 p-2 rounded-full text-blue-600">
                 <Truck size={20} />
               </div>
-              <span>Free Delivery</span>
+              <span>Secure Delivery</span>
             </div>
             <div className="flex flex-col items-center gap-1">
               <div className="bg-blue-50 dark:bg-gray-800 p-2 rounded-full text-blue-600">

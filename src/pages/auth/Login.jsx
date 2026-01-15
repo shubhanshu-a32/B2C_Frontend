@@ -13,6 +13,16 @@ export default function Login() {
 
   const handleMobile = (e) => {
     const num = e.target.value.replace(/\D/g, "");
+
+    // Validation: First digit cannot be 0-5
+    if (num.length >= 1) {
+      const firstDigit = parseInt(num[0]);
+      if (firstDigit < 6) {
+        toast.error("Mobile number must start with 6, 7, 8, or 9");
+        return; // Prevent updating state
+      }
+    }
+
     if (num.length <= 10) setMobile(num);
   };
 

@@ -43,8 +43,8 @@ const useCartStore = create(
 
       clearCart: () => set({ items: [] }),
 
-      // Place order: posts to backend /orders (expects backend createOrder shape)
-      placeOrder: async (paymentType = "COD", address = null) => {
+      // Place order: posts to backend /orders
+      placeOrder: async (paymentType = "COD", address = null, couponData = { code: null, discount: 0 }) => {
         const authUser = useAuthStore.getState().user;
         if (!authUser || authUser.role !== "buyer") {
           toast.error("Please login as buyer to place an order");
@@ -62,6 +62,8 @@ const useCartStore = create(
             items: items.map((i) => ({ productId: i.productId, quantity: i.qty, price: i.price })),
             paymentType,
             address,
+            couponCode: couponData.code,
+            discount: couponData.discount
           };
           const res = await api.post("/orders", payload);
           set({ loading: false, items: [] });
@@ -69,7 +71,19 @@ const useCartStore = create(
           return res.data;
         } catch (err) {
           set({ loading: false });
-          toast.error("Failed to place order");
+
+          // Handle Specific Validation Errors (Stale Cart)
+          if (err.response && err.response.data && err.response.data.invalidProductId) {
+            const { invalidProductId, errorType, message } = err.response.data;
+            toast.error(message);
+
+            // Auto-remove invalid item
+            get().removeFromCart(invalidProductId);
+            return null;
+          }
+
+          const msg = err.response?.data?.message || "Failed to place order";
+          toast.error(msg);
           throw err;
         }
       },
