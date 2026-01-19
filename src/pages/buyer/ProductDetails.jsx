@@ -7,7 +7,7 @@ import useAuthStore from "../../store/authStore";
 import toast from "react-hot-toast";
 import {
   ArrowLeft, Heart, Star, ShoppingCart, Zap,
-  MapPin, ShieldCheck, Truck, RotateCcw, ChevronRight, ChevronLeft
+  MapPin, ShieldCheck, Truck, RotateCcw, ChevronRight, ChevronLeft, Check
 } from "lucide-react";
 import ProductDetailsSkeleton from "../../components/ui/preloaders/ProductDetailsSkeleton";
 
@@ -20,6 +20,11 @@ export default function ProductDetails() {
   const [quantity, setQuantity] = useState(1);
   const [isZoomed, setIsZoomed] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [variants, setVariants] = useState([]);
+  const [selectedVariant, setSelectedVariant] = useState(null);
+  const [selectedAttributes, setSelectedAttributes] = useState({});
+  const [coupons, setCoupons] = useState([]);
+  const [loadingCoupons, setLoadingCoupons] = useState(true);
 
   // Store hooks
   const addToCart = useCartStore((s) => s.addToCart);
@@ -39,6 +44,58 @@ export default function ProductDetails() {
         // Load reviews
         const reviewsRes = await api.get(`/products/${id}/reviews`);
         setReviews(reviewsRes.data);
+
+        // Load Variants
+        try {
+          // Assuming variantService is available or directly use api
+          // backend/src/routes/variant.routes.js: GET /product/:productId -> /api/variants/product/:id
+          const variantsRes = await api.get(`/variants/product/${id}`);
+          setVariants(variantsRes.data);
+
+          // Auto-select first active variant if available? Optional.
+          // Let's force user to select or default to None if they want base product
+          // But usually base product IS one of the variants if variants exist.
+          if (variantsRes.data.length > 0) {
+            const first = variantsRes.data[0];
+            // setSelectedVariant(first); // Optional: auto select
+            const attrs = {};
+            first.attributes.forEach(a => attrs[a.name] = a.value);
+            setSelectedAttributes(attrs);
+            setSelectedVariant(first); // Let's auto-select first one for better UX
+          }
+
+        } catch (vError) {
+          // console.warn("Failed to load variants", vError);
+          setVariants([]);
+        }
+
+        // Load coupons for this product's category
+        if (data.category) {
+          try {
+            setLoadingCoupons(true);
+            const couponsRes = await api.get("/admin/offers/active");
+            // Filter coupons that:
+            // 1. Have no category restriction (empty array or null)
+            // 2. OR include this product's category
+            const applicableCoupons = couponsRes.data.filter(coupon => {
+              if (!coupon.applicableCategories || coupon.applicableCategories.length === 0) {
+                return true; // No restriction, applies to all
+              }
+              // Check if product's category is in the coupon's applicable categories
+              return coupon.applicableCategories.some(
+                catId => catId === data.category._id || catId === data.category
+              );
+            });
+            setCoupons(applicableCoupons);
+          } catch (error) {
+            // console.error("Failed to load coupons:", error);
+            setCoupons([]);
+          } finally {
+            setLoadingCoupons(false);
+          }
+        } else {
+          setLoadingCoupons(false);
+        }
       } catch (error) {
         toast.error("Failed to load product");
         // console.error(error);
@@ -56,15 +113,46 @@ export default function ProductDetails() {
 
   const handleAddToCart = () => {
     if (!user || user.role !== "buyer") return requireLogin();
-    if (product.stock <= 0) return toast.error("Out of stock");
-    addToCart(product, quantity); // Assuming store handles existing quantity update or we just add
-    // toast.success("Added to cart");
+
+    // Determine effective stock and price based on selection
+    const currentStock = selectedVariant ? selectedVariant.stock : product.stock;
+
+    if (currentStock <= 0) return toast.error("Out of stock");
+
+    // Create item to add
+    const itemToAdd = {
+      ...product,
+      price: selectedVariant ? selectedVariant.price : product.price,
+      selectedVariant: selectedVariant ? selectedVariant : null,
+      // We override title or add variant info for display in cart
+      title: selectedVariant ? `${product.title} (${selectedVariant.name})` : product.title
+    };
+
+
+    if (variants.length > 0 && !selectedVariant) {
+      toast.error("Please select a variant option");
+      return;
+    }
+
+    addToCart(itemToAdd, quantity, selectedVariant || null);
+    toast.success("Added to cart");
   };
 
   const handleBuyNow = () => {
-    if (!user || user.role !== "buyer") return requireLogin();
-    if (product.stock <= 0) return toast.error("Out of stock");
-    addToCart(product, quantity);
+    if (variants.length > 0 && !selectedVariant) {
+      toast.error("Please select a variant option");
+      return;
+    }
+
+    // Create item to add (Same logic as AddToCart)
+    const itemToAdd = {
+      ...product,
+      price: selectedVariant ? selectedVariant.price : product.price,
+      selectedVariant: selectedVariant ? selectedVariant : null,
+      title: selectedVariant ? `${product.title} (${selectedVariant.name})` : product.title
+    };
+
+    addToCart(itemToAdd, 1, selectedVariant || null);
     navigate("/buyer/cart");
   };
 
@@ -99,7 +187,11 @@ export default function ProductDetails() {
   const deliveryDate = new Date();
   deliveryDate.setDate(deliveryDate.getDate() + 3);
   const deliveryDateString = deliveryDate.toLocaleDateString("en-US", { weekday: 'short', month: 'short', day: 'numeric' });
-  const isOutOfStock = product.stock <= 0;
+
+  // Use Selected Variant details if active, else Base Product
+  const currentPrice = selectedVariant ? selectedVariant.price : product.price;
+  const currentStock = selectedVariant ? selectedVariant.stock : product.stock;
+  const isOutOfStock = currentStock <= 0;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans pb-12">
@@ -235,27 +327,125 @@ export default function ProductDetails() {
 
           <div className="border-t border-b dark:border-gray-700 py-4 space-y-2">
             <div className="flex items-baseline gap-3">
-              <span className="text-3xl font-bold text-gray-900 dark:text-white">₹{product.price?.toLocaleString()}</span>
-              {/* Mock MRP */}
-              <span className="text-gray-500 line-through text-md">₹{(product.price * 1.2).toFixed(0)}</span>
-              <span className="text-green-600 font-bold text-sm">20% off</span>
+              <span className="text-3xl font-bold text-gray-900 dark:text-white">₹{currentPrice?.toLocaleString()}</span>
             </div>
             <p className="text-xs text-gray-500">Inclusive of all taxes</p>
           </div>
 
+          {/* VARIANTS SECTION */}
+          {/* VARIANTS SECTION - Multi-Attribute Selection */}
+          <div className="mb-6 space-y-4">
+            {Object.entries(
+              variants.reduce((acc, v) => {
+                v.attributes.forEach(attr => {
+                  if (!acc[attr.name]) acc[attr.name] = new Set();
+                  acc[attr.name].add(attr.value);
+                });
+                return acc;
+              }, {})
+            ).map(([attrName, valuesSet]) => {
+              const values = Array.from(valuesSet);
+
+              // Helper to check if a value is valid given ONLY the *other* currently selected attributes
+              // This is complex. Simplified approach: Just show all options.
+              // Better approach: Highlighting or enabling only valid? 
+              // For now, let's render standard dropdowns.
+
+              const currentVal = selectedAttributes[attrName] || "";
+
+              return (
+                <div key={attrName}>
+                  <h3 className="font-semibold text-sm mb-2 text-gray-900 dark:text-white">
+                    {attrName}
+                  </h3>
+                  <div className="relative">
+                    <select
+                      value={currentVal}
+                      onChange={(e) => {
+                        const newVal = e.target.value;
+                        const newAttrs = { ...selectedAttributes, [attrName]: newVal };
+                        setSelectedAttributes(newAttrs);
+
+                        // Attempt to find matching variant
+                        const match = variants.find(v =>
+                          v.attributes.every(a => newAttrs[a.name] === a.value) &&
+                          // Ensure variant has exactly these attributes (length check optional if schema rigid)
+                          v.attributes.length === Object.keys(newAttrs).length
+                        );
+
+                        // If exact match not found (e.g. invalid combo), check if we can find *any* variant 
+                        // that matches the *newly changed* attribute to switch to valid state?
+                        // Or just set to match || null.
+                        // Let's set selectedVariant(match).
+                        setSelectedVariant(match || null);
+
+                        // Update Image if match found
+                        if (match?.images?.length > 0) {
+                          setActiveImage(match.images[0]);
+                        }
+                      }}
+                      className="w-full sm:w-64 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 shadow-sm cursor-pointer"
+                    >
+                      <option value="" disabled>Select {attrName}</option>
+                      {values.map(val => (
+                        <option key={val} value={val}>{val}</option>
+                      ))}
+                    </select>
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-500 sm:right-auto sm:left-56">
+                      {/* Note: Icon positioning might need adjustment based on width, hardcoded left-56 is risky if width changes. 
+                          Keeping standard right align is safer. */}
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Status Message */}
+            {Object.keys(selectedAttributes).length > 0 && !selectedVariant && (
+              <p className="text-red-500 text-sm mt-2">
+                This combination is unavailable.
+              </p>
+            )}
+
+            {variants.length === 0 && (
+              <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700">
+                <p className="text-sm text-gray-500 italic flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-gray-300"></span>
+                  No variants available
+                </p>
+              </div>
+            )}
+          </div>
+
+
           {/* Offers */}
           <div className="space-y-3">
             <h3 className="font-semibold text-sm uppercase text-gray-500">Available Offers</h3>
-            <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
-              <li className="flex gap-2">
-                <Zap className="text-green-600 w-5 h-5 flex-shrink-0" />
-                <span><span className="font-bold">Bank Offer</span> 5% Unlimited Cashback on Axis Bank Credit Card</span>
-              </li>
-              <li className="flex gap-2">
-                <Zap className="text-green-600 w-5 h-5 flex-shrink-0" />
-                <span><span className="font-bold">Partner Offer</span> Sign up for Pay Later and get ₹500 Gift Card</span>
-              </li>
-            </ul>
+            {loadingCoupons ? (
+              <div className="text-sm text-gray-500">Loading offers...</div>
+            ) : coupons.length > 0 ? (
+              <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                {coupons.map((coupon) => (
+                  <li key={coupon._id} className="flex gap-2">
+                    <Zap className="text-green-600 w-5 h-5 flex-shrink-0" />
+                    <div className="flex-1">
+                      <span className="font-bold">{coupon.code}</span> - {coupon.tagline}
+                      {coupon.minCartAmount > 0 && (
+                        <span className="text-xs text-gray-500 block">Min cart: ₹{coupon.minCartAmount}</span>
+                      )}
+                      {coupon.expiryDate && (
+                        <span className="text-xs text-gray-500 block">
+                          Valid till: {new Date(coupon.expiryDate).toLocaleDateString()}
+                        </span>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-gray-500">No coupons and offers are available</p>
+            )}
           </div>
 
           {/* Description */}
@@ -322,7 +512,7 @@ export default function ProductDetails() {
         {/* RIGHT COLUMN: Buy Box / Actions (3 cols) */}
         <div className="lg:col-span-3">
           <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-6 bg-white dark:bg-gray-800 shadow-sm sticky top-24">
-            <h3 className="text-xl font-bold mb-4">₹{product.price?.toLocaleString()}</h3>
+            <h3 className="text-xl font-bold mb-4">₹{currentPrice?.toLocaleString()}</h3>
 
             <div className="space-y-1 mb-6 text-sm">
               {isOutOfStock ? (

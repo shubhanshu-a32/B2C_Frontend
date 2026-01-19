@@ -9,7 +9,7 @@ export default function LocationFilter() {
     const [isPopupOpen, setPopupOpen] = useState(false);
 
     return (
-        <div className="w-full bg-white dark:bg-gray-900 border-b dark:border-gray-700 py-3 px-4 flex items-center justify-center sm:justify-start gap-3 shadow-sm">
+        <div className="w-full bg-white dark:bg-gray-900 border-b dark:border-gray-700 py-3 px-4 flex items-center justify-center sm:justify-start gap-3 shadow-sm fixed top-14 z-40 pt-5">
             <div
                 onClick={() => setPopupOpen(true)}
                 className="flex items-center gap-2 cursor-pointer bg-white dark:bg-gray-800 border dark:border-gray-600 rounded px-3 py-2 hover:shadow-md transition-shadow group"

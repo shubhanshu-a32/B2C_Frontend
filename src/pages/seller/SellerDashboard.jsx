@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import api from "../../services/api";
 import useAuthStore from "../../store/authStore";
 import { Link } from "react-router-dom";
-import { ShoppingBag, TrendingUp, Package, DollarSign } from "lucide-react";
+import { ShoppingBag, TrendingUp, Package, IndianRupee } from "lucide-react";
+import toast from "react-hot-toast";
 
 import {
   LineChart,
@@ -92,9 +93,19 @@ export default function SellerDashboard() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Link to="/seller/add-product" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-            + Add Product
-          </Link>
+          {user?.shopName && user?.ownerName && user?.area ? (
+            <Link to="/seller/add-product" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+              + Add Product
+            </Link>
+          ) : (
+            <Link
+              to="/seller/profile"
+              onClick={() => toast("Please complete Shop Name, Owner Name & Area first.", { icon: "📝" })}
+              className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition shadow-sm"
+            >
+              Complete Profile
+            </Link>
+          )}
         </div>
       </div>
 
@@ -110,7 +121,7 @@ export default function SellerDashboard() {
         <StatCard
           title="Total Revenue"
           value={`₹${COMMAS(summary.totalRevenue)}`}
-          icon={DollarSign}
+          icon={IndianRupee}
           color="bg-green-500 text-green-600"
         />
         <StatCard
@@ -218,6 +229,6 @@ export default function SellerDashboard() {
         </div>
 
       </div>
-    </div>
+    </div >
   );
 }

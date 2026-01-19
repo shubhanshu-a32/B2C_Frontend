@@ -70,7 +70,7 @@ export default function GlobalSearch() {
     };
 
     return (
-        <div className="relative w-max md:w-full max-w-xl sm:px-6 mx-auto group ml-4 md:mx-auto">
+        <div className="relative w-auto md:flex-1 md:w-auto max-w-xl sm:px-6 mx-auto group mx-4 md:mx-auto">
 
             {/* Mobile Search Trigger Icon */}
             {!mobileActive && (

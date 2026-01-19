@@ -1,4 +1,5 @@
 import useCartStore from "../../store/cartStore";
+import useAuthStore from "../../store/authStore";
 import { useLocation } from "../../context/LocationContext";
 import { useState, useEffect } from "react";
 import Button from "../../components/ui/Button";
@@ -14,10 +15,17 @@ const calcShipping = (itemCount, total) => {
   return 0;
 };
 
+import { Trash2 } from "lucide-react";
+
 export default function CartPage() {
-  const { items, removeFromCart, updateQty, placeOrder, loading } = useCartStore();
+  const { items, removeFromCart, updateQty, placeOrder, loading, deduplicateCart, clearCart } = useCartStore();
+  const user = useAuthStore((s) => s.user);
   const navigate = useNavigate();
   const [paymentType, setPaymentType] = useState("COD");
+
+  useEffect(() => {
+    deduplicateCart();
+  }, []);
 
   // Address State
   const { location } = useLocation();
@@ -142,7 +150,7 @@ export default function CartPage() {
       const res = await api.post("/admin/offer/apply", {
         code: couponCode,
         amount: total, // Use subtotal
-        userId: userProfile?.userId || "guest", // or current user ID logic
+        userId: user?._id || "guest",
         products: items.map(i => ({ id: i.productId, qty: i.qty }))
       });
 
@@ -205,6 +213,13 @@ export default function CartPage() {
     }
   };
 
+  const handleClearCart = () => {
+    if (window.confirm("Are you sure you want to clear your cart?")) {
+      clearCart();
+      toast.success("Cart cleared");
+    }
+  };
+
   if (!items.length) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6">
@@ -220,7 +235,16 @@ export default function CartPage() {
   // BIG BOX LAYOUT: Maximize width, larger cards.
   return (
     <div className="w-full max-w-[96%] mx-auto py-6 space-y-6">
-      <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-6">Shopping Cart ({items.length})</h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white">Shopping Cart ({items.length})</h2>
+        <button
+          onClick={handleClearCart}
+          className="flex items-center gap-2 px-4 py-2 bg-red-100 text-red-600 hover:bg-red-200 rounded-lg text-sm font-bold transition"
+        >
+          <Trash2 size={18} />
+          Clear Cart
+        </button>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
@@ -229,18 +253,34 @@ export default function CartPage() {
           {items.map((it) => (
             <div key={it.productId} className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow border dark:border-gray-700 flex flex-col md:flex-row gap-6 transition hover:shadow-lg">
               {/* Large Image */}
-              <div className="w-full md:w-48 h-48 bg-gray-100 dark:bg-gray-700 rounded-lg shrink-0 overflow-hidden">
-                {it.image ? (
-                  <img src={it.image} alt={it.title} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-400">No Image</div>
-                )}
+              <div className="w-full md:w-48 h-48 bg-gray-100 dark:bg-gray-700 rounded-lg shrink-0 overflow-hidden group">
+                <Link to={`/buyer/product/${it.productId}`}>
+                  {it.image ? (
+                    <img src={it.image} alt={it.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400">No Image</div>
+                  )}
+                </Link>
               </div>
 
               {/* Product Info - Big Text */}
               <div className="flex-1 flex flex-col justify-between py-2">
                 <div>
-                  <h3 className="text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-100 line-clamp-2">{it.title}</h3>
+                  <Link to={`/buyer/product/${it.productId}`} className="hover:text-blue-600 transition-colors">
+                    <h3 className="text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-100 line-clamp-2">{it.title}</h3>
+                  </Link>
+
+                  {/* Display Attributes */}
+                  {it.attributes && it.attributes.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {it.attributes.map(attr => (
+                        <span key={attr.name} className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-xs font-semibold rounded text-gray-600 dark:text-gray-300">
+                          {attr.name}: {attr.value}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
                   <div className="mt-2 text-2xl font-bold text-blue-600">₹{it.price}</div>
                 </div>
 
@@ -248,20 +288,20 @@ export default function CartPage() {
                   {/* Big Qty Controls */}
                   <div className="flex items-center border-2 dark:border-gray-600 rounded-xl overflow-hidden h-12">
                     <button
-                      onClick={() => updateQty(it.productId, Math.max(1, it.qty - 1))}
+                      onClick={() => updateQty(it.productId, Math.max(1, it.qty - 1), it.variantId)}
                       className="px-5 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 h-full text-xl font-bold"
                     >-</button>
                     <div className="w-16 text-center bg-white dark:bg-gray-800 dark:text-white text-lg font-bold flex items-center justify-center h-full border-x-2 dark:border-gray-600">
                       {it.qty}
                     </div>
                     <button
-                      onClick={() => updateQty(it.productId, it.qty + 1)}
+                      onClick={() => updateQty(it.productId, it.qty + 1, it.variantId)}
                       className="px-5 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 h-full text-xl font-bold"
                     >+</button>
                   </div>
 
                   <button
-                    onClick={() => removeFromCart(it.productId)}
+                    onClick={() => removeFromCart(it.productId, it.variantId)}
                     className="text-red-500 hover:text-red-700 px-4 py-2 text-lg font-medium bg-red-50 dark:bg-red-900/20 rounded-lg"
                   >
                     Remove
@@ -353,16 +393,22 @@ export default function CartPage() {
                 >
                   <option value="">-- Choose available coupon --</option>
                   {availableOffers.map(offer => {
-                    // Validation: Cart >= Coupon + 40 (Strict buffer rule - Updated by user)
-                    const minRequired = offer.conditionValue + 40;
-                    const isEligible = total >= minRequired;
+                    // 1. Min Cart Amount Validation
+                    const minRequired = offer.minCartAmount || 0;
+                    let isEligible = total >= minRequired;
+                    let eligibilityMsg = "";
+
+                    if (!isEligible) eligibilityMsg = `[Min Order ₹${minRequired}]`;
+
+                    // Usage limit validation removed
+
                     return (
                       <option
                         key={offer._id}
                         value={offer.code}
                         disabled={!isEligible}
                       >
-                        {offer.code} (Save ₹{offer.conditionValue}) {!isEligible ? `[Min Order ₹${minRequired}]` : ""}
+                        {offer.code} (Save ₹{offer.conditionValue}) {eligibilityMsg}
                       </option>
                     );
                   })}

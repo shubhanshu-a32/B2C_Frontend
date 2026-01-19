@@ -17,6 +17,7 @@ export default function SellerProfile() {
     lng: null,
     pincode: "",
     area: "",
+    upiId: "",
     gstNumber: "",
     bankDetails: {
       accountName: "",
@@ -68,6 +69,7 @@ export default function SellerProfile() {
           lng: data.lng || null,
           pincode: data.pincode || "",
           area: data.area || "",
+          upiId: data.upiId || "",
           gstNumber: data.gstNumber || "",
           bankDetails: {
             accountName: data.bankDetails?.accountName || "",
@@ -116,7 +118,7 @@ export default function SellerProfile() {
     };
 
     const handleError = (err) => {
-      console.warn("High accuracy location failed, retrying with low accuracy...", err);
+      // console.warn("High accuracy location failed, retrying with low accuracy...", err);
       // Fallback: Try with low accuracy and longer timeout
       navigator.geolocation.getCurrentPosition(
         handleSuccess,
@@ -172,6 +174,13 @@ export default function SellerProfile() {
   const saveProfile = async () => {
     setLoading(true);
     try {
+      // Validation
+      if (!profile.shopName || !profile.ownerName || !selectedArea || !profile.upiId) {
+        toast.error("Please fill all mandatory fields (including UPI ID)");
+        setLoading(false);
+        return;
+      }
+
       const formData = new FormData();
 
       // Append all profile fields
@@ -182,6 +191,7 @@ export default function SellerProfile() {
       if (profile.lng) formData.append("lng", profile.lng);
       formData.append("pincode", profile.pincode);
       formData.append("area", profile.area);
+      formData.append("upiId", profile.upiId);
       formData.append("gstNumber", profile.gstNumber);
 
       // Handle bankDetails object by flattening or stringifying if backend expects object
@@ -346,8 +356,7 @@ export default function SellerProfile() {
                 city: selected.district,
                 state: selected.state,
                 pincode: selected.pincode,
-                area: selected.area, // Ensure area is set
-                address: prev.address ? `${prev.address} (${selected.area}, ${selected.pincode})` : `${selected.area}, ${selected.district}, ${selected.state} - ${selected.pincode}`
+                area: selected.area
               }));
             }
           }}
@@ -441,6 +450,22 @@ export default function SellerProfile() {
               className="w-full dark:bg-gray-800 dark:text-white border p-2 rounded mt-1 uppercase"
             />
           </div>
+        </div>
+      </div>
+
+      {/* UPI ID Section */}
+      <div className="border-t dark:border-gray-700 pt-6">
+        <h3 className="text-lg font-bold dark:text-gray-200 mb-4">Payment Details</h3>
+        <div>
+          <label className="dark:text-white text-sm font-semibold">UPI ID *</label>
+          <input
+            value={profile.upiId}
+            onChange={(e) =>
+              setProfile({ ...profile, upiId: e.target.value })
+            }
+            placeholder="e.g. mobile@upi"
+            className="w-full dark:bg-gray-800 dark:text-white border p-2 rounded mt-1"
+          />
         </div>
       </div>
 

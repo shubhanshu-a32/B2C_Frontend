@@ -45,7 +45,7 @@ export default function Login() {
 
       navigate(`/verify-otp?mobile=${mobile}&role=${role}`, { state: { otp: res.data?.otp } });
     } catch (err) {
-      console.error(err);
+      // console.error(err);
       toast.error(err?.response?.data?.message || "Failed to send OTP");
     }
   };

@@ -1,9 +1,10 @@
 import Grocery from '../assets/hero_section/food_grocery_banner.png';
 import Electronics from '../assets/hero_section/electronics.png';
 import Fashion from '../assets/hero_section/fashion_banner.png';
-import Electricals from '../assets/hero_section/electricals.jpeg';
+import Electricals from '../assets/hero_section/electricals.png';
 import Home_Kitchen from '../assets/hero_section/home_kitchen.jpeg';
 import Daily_needs from '../assets/hero_section/daily_needs.png';
+import Hardware from '../assets/hero_section/hardware_diy.png';
 
 export const CATEGORIES = [
   {
@@ -30,8 +31,8 @@ export const CATEGORIES = [
     title: "Electricals",
     image: Electricals,
     subs: [
-      {id: "lights", title: "Lights"},
-      {id: "wires", title: "Wires"},
+      { id: "lights", title: "Lights" },
+      { id: "wires", title: "Wires" },
     ],
   },
   {
@@ -39,17 +40,17 @@ export const CATEGORIES = [
     title: "Home and Kitchen",
     image: Home_Kitchen,
     subs: [
-      {id: "furniture", title: "Furniture"},
-      {id: "kitchen-equipments", title: "Kitchen-Equipments"},
-    ], 
+      { id: "furniture", title: "Furniture" },
+      { id: "kitchen-equipments", title: "Kitchen-Equipments" },
+    ],
   },
   {
     id: "food-grocery",
     title: "Food & Grocery",
     image: Grocery,
     subs: [
-      {id: "fruits", title: "Fruits"},
-      {id: "vegetables", title: "Vegetables"},
+      { id: "fruits", title: "Fruits" },
+      { id: "vegetables", title: "Vegetables" },
     ],
   },
   {
@@ -57,10 +58,19 @@ export const CATEGORIES = [
     title: "Daily Needs",
     image: Daily_needs,
     subs: [
-      {id: "bread", title: "Breads"},
-      {id: "milk", title: "Milk"},
-      {id: "egg", title: "Egg"},
-      {id: "butter", title: "Butter"},
+      { id: "bread", title: "Breads" },
+      { id: "milk", title: "Milk" },
+      { id: "egg", title: "Egg" },
+      { id: "butter", title: "Butter" },
+    ],
+  },
+  {
+    id: "hardware",
+    title: "Hardware and DIY",
+    image: Hardware,
+    subs: [
+      { id: "tools", title: "Tools" },
+      { id: "paints", title: "Paints" },
     ],
   },
 ];

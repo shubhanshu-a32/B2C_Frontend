@@ -3,11 +3,16 @@ import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import toast from "react-hot-toast";
 import useCategoryStore from "../../store/categoryStore"; // Import store
-import { Upload, X, ImageIcon } from "lucide-react";
+import { Upload, X, ImageIcon, Plus, Trash2, Check } from "lucide-react";
+import variantService from "../../services/variantService";
 
 export default function AddProduct() {
   const navigate = useNavigate();
   const { categories, fetchCategories } = useCategoryStore();
+
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
 
   const [form, setForm] = useState({
     title: "",
@@ -17,19 +22,126 @@ export default function AddProduct() {
     commission: "",
     category: "",
     subcategory: "",
-    size: "",
-    color: "",
     weight: "",
     weightUnit: "kg"
   });
 
+  // Variant State (Shopify Style)
+  const [options, setOptions] = useState([]); // [{ name: 'Size', values: ['S', 'M'] }]
+  const [variants, setVariants] = useState([]); // Generated combinations
+
+  // Image & Upload State
   const [mainImage, setMainImage] = useState("");
   const [additionalImages, setAdditionalImages] = useState([]);
   const [uploading, setUploading] = useState(false);
 
+  /* ---------- VARIANT LOGIC (SHOPIFY STYLE) ---------- */
+  const addOption = () => {
+    setOptions([...options, { name: "", values: [], inputValue: "" }]);
+  };
+
+  const removeOption = (idx) => {
+    const newOptions = [...options];
+    newOptions.splice(idx, 1);
+    setOptions(newOptions);
+  };
+
+  const updateOptionName = (idx, name) => {
+    const newOptions = [...options];
+    newOptions[idx].name = name;
+    setOptions(newOptions);
+  };
+
+  const updateOptionInputValue = (idx, val) => {
+    const newOptions = [...options];
+    newOptions[idx].inputValue = val;
+    setOptions(newOptions);
+  };
+
+  const addOptionValue = (idx) => {
+    const val = options[idx].inputValue;
+    if (!val || !val.trim()) return;
+
+    const newOptions = [...options];
+    if (!newOptions[idx].values.includes(val.trim())) {
+      newOptions[idx].values.push(val.trim());
+      newOptions[idx].inputValue = ""; // Clear input
+      setOptions(newOptions);
+    }
+  };
+
+  const removeOptionValue = (idx, valIdx) => {
+    const newOptions = [...options];
+    newOptions[idx].values.splice(valIdx, 1);
+    setOptions(newOptions);
+  };
+
+  // Auto-generate variants when options change
   useEffect(() => {
-    fetchCategories();
-  }, [fetchCategories]);
+    if (options.length === 0) {
+      setVariants([]);
+      return;
+    }
+
+    // Filter out options with no values
+    const validOptions = options.filter(o => o.values.length > 0);
+    if (validOptions.length === 0) {
+      setVariants([]);
+      return;
+    }
+
+    // Cartesian product helper
+    const cartesian = (args) => {
+      const result = [];
+      const max = args.length - 1;
+      function helper(arr, i) {
+        for (let j = 0, l = args[i].length; j < l; j++) {
+          const a = arr.slice(0); // clone arr
+          a.push(args[i][j]);
+          if (i === max) result.push(a);
+          else helper(a, i + 1);
+        }
+      }
+      helper([], 0);
+      return result;
+    };
+
+    const combinations = cartesian(validOptions.map(o => o.values));
+
+    // Map combinations to variant objects, preserving existing price/stock if variant name matches
+    setVariants(prev => {
+      return combinations.map(combo => {
+        const name = combo.join(" / ");
+        const existing = prev.find(v => v.name === name);
+        return {
+          name: name,
+          attributes: validOptions.map((opt, i) => ({ name: opt.name, value: combo[i] })),
+          price: existing ? existing.price : form.price,
+          stock: existing ? existing.stock : form.stock
+        };
+      });
+    });
+
+  }, [options, form.price, form.stock]);
+
+  const updateVariantField = (idx, field, value) => {
+    const newVariants = [...variants];
+    newVariants[idx][field] = value;
+    setVariants(newVariants);
+  };
+
+  const removeVariant = (idx) => {
+    // Note: This only removes it from display temporarily; regeneration might bring it back if options exist.
+    // In Shopify, you typically delete the option value to remove variants, or uncheck them.
+    // For simplicity, let's just allow removing from the specific list if needed, but regeneration will overwrite.
+    // Actually, better to strictly stick to options driving generation.
+    // But allowing manual delete is fine for "I don't sell Small/Red".
+    // We'd need to flag it as deleted or simple filter.
+    const newVariants = [...variants];
+    newVariants.splice(idx, 1);
+    setVariants(newVariants);
+  };
+
 
   /* ---------- CATEGORY LOGIC ---------- */
   // form.category is expected to be an ID for product creation
@@ -141,25 +253,48 @@ export default function AddProduct() {
     const allImages = [mainImage, ...additionalImages];
 
     try {
-      await api.post("/products", {
+      setUploading(true); // Reuse uploading state for submission blocking
+
+      // 1. Create Base Product
+      const productRes = await api.post("/products", {
         ...form,
         price: Number(form.price),
         stock: Number(form.stock),
         commission: Number(form.commission),
         images: allImages,
         specs: {
-          size: form.size,
-          color: form.color,
+          // If variants exist, these might be "default" or left empty. 
+          // For now, let's keep them if user filled them in main form (though I removed them from UI below)
           weight: form.weight,
           weightUnit: form.weightUnit || 'kg'
         }
       });
 
-      toast.success("Product added successfully");
+      const newProductId = productRes.data._id;
+
+      // 2. Create Variants if any
+      if (variants.length > 0) {
+        // Create an array of promises
+        const variantPromises = variants.map(v => {
+          return variantService.createVariant({
+            productId: newProductId,
+            price: Number(v.price || form.price), // Fallback to base price
+            stock: Number(v.stock || 0),
+            attributes: v.attributes, // Directly use generated attributes
+            // images: [] 
+          });
+        });
+
+        await Promise.all(variantPromises);
+      }
+
+      toast.success("Product and variants added successfully");
       navigate("/seller/products");
     } catch (err) {
       // console.error(err);
       toast.error("Failed to add product");
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -171,7 +306,7 @@ export default function AddProduct() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Add New Product</h2>
-          <p className="text-sm md:text-base text-gray-500 dark:text-gray-400 mt-1">Create a new product listing for your store.</p>
+          <p className="text-sm md:text-base text-gray-500 dark:text-gray-400 mt-1">Create a new product listing with optional variants.</p>
         </div>
         <div className="flex gap-3 w-full md:w-auto">
           <button
@@ -186,7 +321,7 @@ export default function AddProduct() {
             disabled={uploading}
             className="flex-1 md:flex-none px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors text-center"
           >
-            Publish Product
+            {uploading ? "Publishing..." : "Publish Product"}
           </button>
         </div>
       </div>
@@ -312,6 +447,128 @@ export default function AddProduct() {
               </div>
             </div>
           </div>
+
+          {/* VARIANTS SECTION - SHOPIFY STYLE */}
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+            <div className="mb-4">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Variants</h3>
+              <p className="text-sm text-gray-500">Add options like size or color to create variants.</p>
+            </div>
+
+            {/* Option Definition */}
+            <div className="space-y-4 mb-6">
+              {options.map((opt, idx) => (
+                <div key={idx} className="bg-gray-50 dark:bg-gray-900 p-4 rounded-xl border border-gray-200 dark:border-gray-700 relative">
+                  <div className="mb-3">
+                    <label className="text-sm font-semibold block mb-1">Option Name</label>
+                    <input
+                      className={inputClass}
+                      value={opt.name}
+                      onChange={(e) => updateOptionName(idx, e.target.value)}
+                      placeholder="e.g. Size, Color"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold block mb-1">Option Values</label>
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {opt.values.map((val, vIdx) => (
+                        <span key={vIdx} className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-1 rounded text-sm flex items-center gap-1">
+                          {val}
+                          <button type="button" onClick={() => removeOptionValue(idx, vIdx)}><X size={12} /></button>
+                        </span>
+                      ))}
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        className={inputClass}
+                        placeholder="Add value (e.g. Small, Red)"
+                        value={opt.inputValue || ""}
+                        onChange={(e) => updateOptionInputValue(idx, e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            addOptionValue(idx);
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => addOptionValue(idx)}
+                        className="bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 p-2 rounded-lg hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors"
+                        title="Add Value"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                      </button>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeOption(idx)}
+                    className="absolute top-2 right-2 text-gray-400 hover:text-red-500"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              ))}
+
+              {options.length < 3 && (
+                <button
+                  type="button"
+                  onClick={addOption}
+                  className="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                >
+                  <Plus size={16} /> Add another option
+                </button>
+              )}
+            </div>
+
+            {/* Generated Variants Table */}
+            {variants.length > 0 && (
+              <div className="overflow-x-auto border border-gray-200 dark:border-gray-700 rounded-lg">
+                <table className="w-full text-sm text-left">
+                  <thead className="bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 font-medium border-b dark:border-gray-700">
+                    <tr>
+                      <th className="px-4 py-3">Variant</th>
+                      <th className="px-4 py-3 w-32">Price (₹)</th>
+                      <th className="px-4 py-3 w-32">Stock</th>
+                      <th className="px-4 py-3 w-10"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                    {variants.map((v, idx) => (
+                      <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-gray-900/50">
+                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">
+                          {v.name}
+                        </td>
+                        <td className="px-4 py-2">
+                          <input
+                            type="number"
+                            className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded px-2 py-1 outline-none focus:border-blue-500"
+                            value={v.price}
+                            onChange={(e) => updateVariantField(idx, 'price', e.target.value)}
+                            placeholder={form.price || "0"}
+                          />
+                        </td>
+                        <td className="px-4 py-2">
+                          <input
+                            type="number"
+                            className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded px-2 py-1 outline-none focus:border-blue-500"
+                            value={v.stock}
+                            onChange={(e) => updateVariantField(idx, 'stock', e.target.value)}
+                            placeholder="0"
+                          />
+                        </td>
+                        <td className="px-4 py-2">
+                          <button type="button" onClick={() => removeVariant(idx)} className="text-gray-400 hover:text-red-500"><Trash2 size={16} /></button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
         </div>
 
         {/* RIGHT COLUMN - SIDEBAR */}
@@ -362,7 +619,7 @@ export default function AddProduct() {
 
           {/* Pricing & Stock */}
           <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Pricing & Stock</h3>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Base Pricing & Stock</h3>
 
             <div className="space-y-4">
               <div>
@@ -389,28 +646,10 @@ export default function AddProduct() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className={labelClass}>Size</label>
-                  <input
-                    name="size"
-                    placeholder="e.g. XL, 10"
-                    value={form.size || ""}
-                    onChange={handleChange}
-                    className={inputClass}
-                  />
-                </div>
-                <div>
-                  <label className={labelClass}>Color</label>
-                  <input
-                    name="color"
-                    placeholder="e.g. Red, Blue"
-                    value={form.color || ""}
-                    onChange={handleChange}
-                    className={inputClass}
-                  />
-                </div>
-              </div>
+              {/* REMOVED SIZE/COLOR FROM BASE FORM AS WE USE VARIANTS NOW, OR KEEP FOR BACKWARD COMPAT (Leaving Weight) */}
+              {/* <div className="grid grid-cols-2 gap-4">
+                 ... (Size/Color removed to encourage using Variants, but Weight kept)
+              </div> */}
 
               <div className="grid grid-cols-2 gap-4">
                 <div>

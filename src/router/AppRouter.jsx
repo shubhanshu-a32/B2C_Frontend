@@ -29,6 +29,15 @@ import EditProduct from "../pages/seller/EditProduct";
 import SellerProfile from "../pages/seller/SellerProfile";
 import TotalOrders from "../pages/seller/TotalOrders";
 
+// Footer Pages
+import PrivacyAndPolicy from "../components/footer_UI/PrivacyAndPolicy";
+import TermsAndCondition from "../components/footer_UI/TermsAndCondition";
+import ContactUs from "../components/footer_UI/ContactUs";
+import AboutKetalog from "../components/footer_UI/AboutKetalog";
+import SellOnKetalog from "../components/footer_UI/SellOnKetalog";
+import InvestKetalog from "../components/footer_UI/InvestKetalog";
+import DeliveryPartner from "../components/footer_UI/DeliveryPartner";
+
 
 
 
@@ -51,6 +60,15 @@ export default function AppRouter() {
           <Route path="/shop" element={<Shop />} />
           <Route path="/product/:id" element={<ProductDetails />} />
           <Route path="/buyer/seller/:sellerId" element={<SellerShop />} />
+
+          {/* Footer Pages */}
+          <Route path="/privacy-policy" element={<PrivacyAndPolicy />} />
+          <Route path="/terms" element={<TermsAndCondition />} />
+          <Route path="/contact-us" element={<ContactUs />} />
+          <Route path="/about-ketalog" element={<AboutKetalog />} />
+          <Route path="/sell-on-ketalog" element={<SellOnKetalog />} />
+          <Route path="/invest-ketalog" element={<InvestKetalog />} />
+          <Route path="/delivery-partner" element={<DeliveryPartner />} />
         </Route>
 
         {/* Buyer Routes */}
@@ -84,7 +102,6 @@ export default function AppRouter() {
           <Route path="dashboard" element={<SellerDashboard />} />
           <Route path="products" element={<ManageProducts />} />
           <Route path="add-product" element={<AddProduct />} />
-          <Route path="edit-product/:id" element={<EditProduct />} />
           <Route path="edit-product/:id" element={<EditProduct />} />
           <Route path="profile" element={<SellerProfile />} />
           <Route path="dashboard/total-orders" element={<TotalOrders />} />

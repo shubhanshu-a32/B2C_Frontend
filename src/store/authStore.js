@@ -37,19 +37,27 @@ const useAuthStore = create((set) => ({
   },
 
   setUser: (user) => {
-    set((state) => ({
-      user,
-      accessToken: state.accessToken,
-      refreshToken: state.refreshToken
-    }));
+    set((state) => {
+      const newState = {
+        user,
+        accessToken: state.accessToken,
+        refreshToken: state.refreshToken
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
+      return newState;
+    });
   },
 
   setToken: (token) => {
-    set((state) => ({
-      user: state.user,
-      accessToken: token,
-      refreshToken: state.refreshToken
-    }));
+    set((state) => {
+      const newState = {
+        user: state.user,
+        accessToken: token,
+        refreshToken: state.refreshToken
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
+      return newState;
+    });
   },
 
   logout: () => {

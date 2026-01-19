@@ -17,7 +17,7 @@ export default function LocationPopup({ isOpen, onClose, onSave }) {
                     setFilteredLocations(res.data);
                 })
                 .catch(err => {
-                    console.error(err);
+                    // console.error(err);
                     toast.error("Failed to load locations");
                 })
                 .finally(() => setLoading(false));

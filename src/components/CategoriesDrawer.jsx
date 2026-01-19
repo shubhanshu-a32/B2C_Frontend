@@ -37,7 +37,7 @@ export default function CategoriesDrawer({ open, setOpen }) {
       });
       setOpen(false);
     } catch (err) {
-      console.error("Product check failed", err);
+      // console.error("Product check failed", err);
       toast.error("Could not verify product availability");
     }
   };

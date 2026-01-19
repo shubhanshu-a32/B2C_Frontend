@@ -14,6 +14,7 @@ import {
   Menu,
   ChevronLeft
 } from "lucide-react";
+import WhatsAppButton from "../components/WhatsAppButton";
 
 export default function SellerLayout() {
   const { user, logout } = useAuthStore();
@@ -148,6 +149,9 @@ export default function SellerLayout() {
           <div className="max-w-7xl mx-auto animate-fadeIn">
             <Outlet />
           </div>
+
+          {/* Global WhatsApp Button for Seller Dashboard */}
+          <WhatsAppButton />
         </main>
       </div>
     </div>

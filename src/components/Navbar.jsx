@@ -39,7 +39,7 @@ export default function NavBar() {
 
   return (
     <>
-      <nav className="w-full sm:text-sm text-lg bg-white dark:bg-gray-800 shadow px-4 py-3 flex items-center justify-between gap-2 sm:gap-4 sticky top-0 z-50">
+      <nav className="w-full sm:text-sm text-lg bg-white dark:bg-gray-800 shadow px-4 py-3 flex items-center justify-between gap-2 sm:gap-4 fixed top-0 z-50">
         <div className="flex items-center gap-3">
           {(!user || user.role !== "seller") && (
             <button onClick={() => setOpenCategories(true)} className="p-3 rounded hover:bg-gray-100 dark:hover:bg-gray-700">
@@ -181,7 +181,7 @@ export default function NavBar() {
             </button>
           </div>
         </div>
-      </nav>
+      </nav >
 
       {/* Location Filter Bar - Buyers/Public Only */}
       {(!user || user.role !== "seller") && <LocationFilter />}

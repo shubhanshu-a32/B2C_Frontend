@@ -10,35 +10,77 @@ const useCartStore = create(
       items: [], // { productId, title, price, qty, image }
       loading: false,
 
-      addToCart: (product, qty = 1) => {
-        const items = get().items.slice();
-        const idx = items.findIndex((i) => i.productId === product._id);
+      addToCart: (product, qty = 1, variant = null) => {
+        let items = get().items.slice();
+
+        const targetVid = variant ? String(variant._id) : null;
+        const targetPid = String(product._id);
+
+        const idx = items.findIndex((i) =>
+          String(i.productId) === targetPid &&
+          (targetVid ? String(i.variantId) === targetVid : !i.variantId)
+        );
+
         if (idx > -1) {
           items[idx].qty += qty;
         } else {
+          const finalPrice = variant ? variant.price : product.price;
+          const finalImage = variant?.images?.[0] || product.images?.[0] || null;
+
           items.push({
-            productId: product._id,
+            productId: targetPid,
             title: product.title,
-            price: product.price,
+            price: finalPrice,
             qty,
-            image: product.images?.[0] || null,
+            image: finalImage,
             sellerId: typeof product.sellerId === 'object' ? product.sellerId._id : product.sellerId,
             sellerName: typeof product.sellerId === 'object' ? product.sellerId.shopName : (product.sellerName || "Unknown Seller"),
+            variantId: targetVid, // Store as String
+            attributes: variant ? variant.attributes : null,
           });
         }
+
+        // Auto-Deduplicate just in case state got messy
         set({ items });
-        // toast.success("Added to cart");
       },
 
-      removeFromCart: (productId) => {
-        set((state) => ({ items: state.items.filter((i) => i.productId !== productId) }));
+      removeFromCart: (productId, variantId = null) => {
+        set((state) => ({
+          items: state.items.filter((i) => {
+            const samePid = String(i.productId) === String(productId);
+            const sameVid = variantId ? String(i.variantId) === String(variantId) : !i.variantId;
+            return !(samePid && sameVid);
+          }),
+        }));
         toast.error("Removed from cart");
       },
 
-      updateQty: (productId, qty) => {
+      updateQty: (productId, qty, variantId = null) => {
         set((state) => ({
-          items: state.items.map((i) => (i.productId === productId ? { ...i, qty } : i)),
+          items: state.items.map((i) => {
+            const samePid = String(i.productId) === String(productId);
+            const sameVid = variantId ? String(i.variantId) === String(variantId) : !i.variantId;
+            return (samePid && sameVid) ? { ...i, qty } : i;
+          }),
         }));
+      },
+
+      deduplicateCart: () => {
+        set((state) => {
+          const uniqueItems = [];
+          state.items.forEach(item => {
+            const existingIdx = uniqueItems.findIndex(u =>
+              String(u.productId) === String(item.productId) &&
+              (u.variantId ? String(u.variantId) === String(item.variantId) : !item.variantId)
+            );
+            if (existingIdx > -1) {
+              uniqueItems[existingIdx].qty += item.qty;
+            } else {
+              uniqueItems.push(item);
+            }
+          });
+          return { items: uniqueItems };
+        });
       },
 
       clearCart: () => set({ items: [] }),

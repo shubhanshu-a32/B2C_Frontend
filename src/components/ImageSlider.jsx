@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import fashion from "../assets/hero_section/fashion_banner.png";
 import electronics from "../assets/hero_section/electronics.png";
-import electricals from "../assets/hero_section/electricals.jpeg";
+import electricals from "../assets/hero_section/electricals.png";
 import home_kitchen from "../assets/hero_section/home_kitchen.jpeg";
 import groceries from "../assets/hero_section/food_grocery_banner.png";
 import daily_needs from "../assets/hero_section/daily_needs.png";
+import hardware from "../assets/hero_section/hardware_diy.png";
 
 const SLIDES = [
   fashion,
@@ -13,6 +14,7 @@ const SLIDES = [
   home_kitchen,
   groceries,
   daily_needs,
+  hardware,
 ];
 
 export default function ImageSlider() {

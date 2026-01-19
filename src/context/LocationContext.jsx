@@ -8,7 +8,7 @@ export const LocationProvider = ({ children }) => {
             const saved = localStorage.getItem('userLocation');
             return saved ? JSON.parse(saved) : { area: "Katni", pincode: "483501", district: "Katni", state: "Madhya Pradesh" };
         } catch (e) {
-            console.error("Failed to parse userLocation", e);
+            // console.error("Failed to parse userLocation", e);
             localStorage.removeItem('userLocation');
             return { area: "Katni", pincode: "483501", district: "Katni", state: "Madhya Pradesh" };
         }
